@@ -1,0 +1,50 @@
+---
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for build stage3-gentoo-systemd-amd64 image
+
+- name: "Stage3 Gentoo Systemd AMD64"
+  tags:
+    - gentoo_stage3
+  block:
+    - name: "stage3-gentoo-systemd-amd64: Setup"
+      set_fact:
+          current_build: "stage3-gentoo-systemd-amd64"
+          current_arch: 'amd64'
+          current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd-amd64"
+          current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+          docker_image_name: "{{ docker_user }}/stage3-gentoo-systemd-amd64"
+
+    - name: "{{ current_build }}: Check for updated portage tarball"
+      include_role:
+        name: commons
+        tasks_from: download_portage
+
+    - name: "{{ current_build }}: Prepare build context"
+      include_role:
+        name: commons
+        tasks_from: prepare_ctx
+
+    - name: "{{ current_build }}: Download stage3 image"
+      include_role:
+        name: commons
+        tasks_from: download_stage3_image
+
+    - name: "{{ current_build }}: Create image {{ docker_image_name }}"
+      command: >
+        docker build -t {{ docker_image_name }}
+        --build-arg TARBALL={{ stage3_file }}
+        --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
+        --build-arg CACHEBUST={{ current_date }} .
+      args:
+        chdir: "{{ current_builddir }}"
+      register: gentoo_state3_build
+
+    - name: "{{ current_build }}: Build result"
+      debug: var=gentoo_state3_build.stdout_lines
+
+    # I don't clean context to avoid rebuild
+    #- name: "{{ current_build }}: Clean build context"
+    #  include_role:
+    #    name: commons
+    #    tasks_from: clean_ctx
+

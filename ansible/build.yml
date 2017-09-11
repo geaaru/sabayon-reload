@@ -1,0 +1,9 @@
+---
+- hosts:
+    - all
+  tasks:
+    - name: Build All
+      include_role:
+        name: build
+        tasks_from: gentoo_stage3
+

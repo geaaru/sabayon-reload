@@ -1,0 +1,8 @@
+---
+
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for clean context build directory
+
+- name: "{{ current_build }}: Clean Sabayon Stuff"
+  command: rm -rf {{ current_builddir }}/sabayon-stuff/*
+

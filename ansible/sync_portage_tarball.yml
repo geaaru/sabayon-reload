@@ -1,0 +1,9 @@
+---
+- hosts:
+    - all
+  tasks:
+    - name: Update Portage
+      include_role:
+        name: commons
+        tasks_from: download_portage
+

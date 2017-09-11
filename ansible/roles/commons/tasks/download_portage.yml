@@ -1,0 +1,51 @@
+---
+
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for download latest portage tarball
+
+- name: "{{ current_build }}: Check if exists md5sum file"
+  stat:
+    path: "{{ builder_rootdir }}/portage-latest.tar.xz.md5sum"
+    get_checksum: yes
+  register: portage_md5_file
+
+#- name: "{{ current_build }}: Calculate MD5 of current portage md5sum file"
+#  shell: md5sum "{{ builder_rootdir }}/portage-latest.tar.xz.md5sum"
+#  register: current_portage_md5file
+#  when: portage_md5_file.stat.exists
+
+- name: "{{ current_build }}: Set empty current_md5_file variable"
+  set_fact:
+    portage_md5_file: { "stat": { "md5": "", "exists": false } }
+  when: not portage_md5_file.stat.exists
+
+- name: "{{ current_build }}: Download latest portage md5sum file"
+  get_url:
+    url: '{{ gentoo_dist_server }}/snapshots/portage-latest.tar.xz.md5sum'
+    dest: "/tmp/portage-latest.tar.xz.md5sum"
+  register: get_portage_latest_md5
+
+- name: "{{ current_build }}: Calculate MD5 of downloaded file"
+  shell: "md5sum /tmp/portage-latest.tar.xz.md5sum | cut -d' ' -f1"
+  register: portage_md5
+
+- name: "{{ current_build }}: Get MD5 of new tarball"
+  shell: "cat /tmp/portage-latest.tar.xz.md5sum | cut -d' ' -f1"
+  register: portage_md5_tarball
+
+- name: "{{ current_build }}: Check portage md5"
+  set_fact:
+    portage_new_md5: "{{ ( portage_md5.stdout != portage_md5_file.stat.md5 ) | bool }}"
+    portage_tarball_checksum: "md5:{{ portage_md5_tarball.stdout }}"
+
+- name: "{{ current_build }}: Download latest portage file"
+  get_url:
+    url: '{{ gentoo_dist_server }}/snapshots/portage-latest.tar.xz'
+    dest: "{{ builder_rootdir }}/portage-latest.tar.xz"
+    checksum: "{{ portage_tarball_checksum }}"
+  when: portage_new_md5
+
+- name: "{{ current_build }}: Copy latest md5 file"
+  shell: cp /tmp/portage-latest.tar.xz.md5sum "{{ builder_rootdir }}"/
+  when: portage_new_md5
+

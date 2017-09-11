@@ -1,0 +1,7 @@
+[builder]
+localhost
+
+[builder:vars]
+transport=local
+ansible_connection=local
+

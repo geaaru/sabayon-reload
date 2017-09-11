@@ -1,0 +1,16 @@
+---
+
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for prepare context build directory for docker build.
+
+#- name: "{{ current_build }}: Check if exists Sabayon Stuff"
+#  stat:
+#    path: "{{ builder_rootdir }}/sabayon-stuff"
+#  register: sabayon_stuff_dir
+
+- name: "{{ current_build }}: Copy Sabayon Stuff"
+  command: cp -arf {{ builder_rootdir }}/sabayon-stuff {{ current_builddir }}
+
+- name: "{{ current_build }}: Copy portage tarball"
+  command: cp -af {{ builder_rootdir }}/portage-latest.tar.xz {{ current_builddir }}
+
