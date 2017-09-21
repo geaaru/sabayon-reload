@@ -2,8 +2,13 @@
 - hosts:
     - all
   tasks:
-    - name: Build All
+    - name: Build Gentoo Stage3
       include_role:
         name: build
         tasks_from: gentoo_stage3
+
+    - name: Build Sabayon Stage3
+      include_role:
+        name: build
+        tasks_from: sabayon_stage3
 

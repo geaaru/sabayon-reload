@@ -28,10 +28,12 @@
 - name: "{{ current_build }}: Calculate MD5 of downloaded file"
   shell: "md5sum /tmp/portage-latest.tar.xz.md5sum | cut -d' ' -f1"
   register: portage_md5
+  changed_when: False
 
 - name: "{{ current_build }}: Get MD5 of new tarball"
   shell: "cat /tmp/portage-latest.tar.xz.md5sum | cut -d' ' -f1"
   register: portage_md5_tarball
+  changed_when: False
 
 - name: "{{ current_build }}: Check portage md5"
   set_fact:
@@ -48,4 +50,8 @@
 - name: "{{ current_build }}: Copy latest md5 file"
   shell: cp /tmp/portage-latest.tar.xz.md5sum "{{ builder_rootdir }}"/
   when: portage_new_md5
+
+# With portage-latest.tar.xz of 20 September I receive this error
+# on ADD file on docker
+# Error processing tar file(exit status 1): Unhandled tar header type 86
 

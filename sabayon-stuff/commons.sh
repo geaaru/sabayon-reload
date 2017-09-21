@@ -7,6 +7,61 @@ GENTOO_PROFILE_VERSION="13.0"
 PORTDIR=/usr/portage
 PORTAGE_LATEST_PATH=/portage-latest.tar.xz
 
+sabayon_set_default_shell () {
+  local shell=${1:-/bin/bash}
+
+  chsh -s ${shell} || return 1
+
+  return 0
+}
+
+sabayon_set_resolvconf () {
+  local dns="${1:-8.8.8.8}"
+
+  echo "nameserver ${dns}" > /etc/resolv.conf
+
+  return 0
+}
+
+sabayon_gcc_config_fixbug () {
+  # Sad to face this issue still after 1.5yr,
+  # see https://bugs.gentoo.org/show_bug.cgi?id=504118
+  ln -s /lib64/gentoo/functions.sh /etc/init.d/functions.sh || return 1
+
+  return 0
+}
+
+sabayon_gcc_config_unfixbug () {
+  rm -f /etc/init.d/functions.sh || return 1
+  return 0
+}
+
+sabayon_check_etc_portage () {
+
+  if [[ ! -d /etc/portage/package.keywords ]] ; then
+    mkdir -p /etc/portage/package.keywords
+  fi
+
+  if [[ ! -d /etc/portage/package.use ]] ; then
+    mkdir -p /etc/portage/package.use
+  fi
+
+  return 0
+}
+
+sabayon_set_locale_conf () {
+
+  local lang="${1:-en_US.UTF-8}"
+
+  for f in /etc/env.d/02locale /etc/locale.conf; do
+      echo "LANG=${lang}" > "${f}"
+      echo "LANGUAGE=${lang}" >> "${f}"
+      echo "LC_ALL=${lang}" >> "${f}"
+  done
+
+  return 0
+}
+
 sabayon_set_locate () {
 
   echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen || return 1
@@ -63,6 +118,26 @@ sync-uri = ${url}
   return $?
 }
 
+sabayon_install_overlay () {
+
+  local name=$1
+  local unofficial=${2:-0}
+
+  # Fetch list
+  layman -f || return 1
+
+  echo "Installing overlay ${name}..."
+
+  # Install overlay
+  if [ $unofficial -eq 0 ] ; then
+    layman -a ${name} || return 1
+  else
+    echo 'y' | layman -a ${name} ||  return 1
+  fi
+
+  return 0
+}
+
 sabayon_set_profile () {
 
   local profile=${1:-default/linux/amd64/${GENTOO_PROFILE_VERSION}/systemd}
@@ -95,3 +170,35 @@ sabayon_init_portage () {
 
   return 0
 }
+
+sabayon_configure_portage () {
+
+  local init_etc=${1:-0}
+  local reposdir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
+
+  [ -z "${SABAYON_PORTAGE_CONF_REPOS}" ] && return 1
+  [ -z "${SABAYON_ARCH}" ] && return 1
+  [ -z "${SABAYON_PORTAGE_CONF_INSTALLDIR}" ] && return 1
+  [ -z "${SABAYON_PORTAGE_CONF_INSTALLNAME}" ] && return 1
+
+  cd "${SABAYON_PORTAGE_CONF_INSTALLDIR}" || return 1
+
+  git clone ${SABAYON_PORTAGE_CONF_REPOS} ${SABAYON_PORTAGE_CONF_INSTALLNAME}
+
+  # Configure repos
+  git config --global user.name "root" || return 1
+  git config --global user.email "root@localhost" || return 1
+
+  # TODO: check if correct maintains intel configuration
+
+  if [ ${init_etc} -eq 1 ] ; then
+    cd /etc
+    mv portage portage-gentoo || return 1
+    ln -s ${reposdir}/conf/intel/portage portage || return 1
+
+  fi
+
+  return 0
+}
+
+# vim: ts=3 sw=3 expandtab
