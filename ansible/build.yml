@@ -12,3 +12,8 @@
         name: build
         tasks_from: sabayon_stage3
 
+    - name: Build Sabayon Base
+      include_role:
+        name: build
+        tasks_from: sabayon_base
+

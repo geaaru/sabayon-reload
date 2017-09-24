@@ -1,16 +1,16 @@
 ---
 # Author:  Geaaru, geaaru@gmail.com
-# Description: Script for build stage3-sabayon-amd64 image
+# Description: Script for build stage3-gentoo-systemd-amd64 image
 
-- name: "Stage3 Sabayon Systemd AMD64"
+- name: "Sabayon Base AMD64"
   tags:
-    - sabayon_stage3
+    - sabayon_base
   vars:
-    current_build: "stage3-sabayon-amd64"
+    current_build: "sabayon-base-amd64"
     current_arch: 'amd64'
-    current_builddir: "{{ builder_rootdir }}/stage3-sabayon-amd64"
+    current_builddir: "{{ builder_rootdir }}/sabayon-base-amd64"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
-    docker_image_name: "{{ docker_user }}/stage3-sabayon-amd64"
+    docker_image_name: "{{ docker_user }}/sabayon-base-amd64"
   block:
 
     - name: "{{ current_build }}: Check for updated portage tarball"
@@ -26,7 +26,6 @@
     - name: "{{ current_build }}: Create image {{ docker_image_name }}"
       command: >
         docker build -t {{ docker_image_name }}
-        --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
         --build-arg CACHEBUST={{ current_date }} .
       args:
         chdir: "{{ current_builddir }}"

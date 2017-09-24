@@ -147,8 +147,10 @@ case $1 in
     sabayon_stage3_phase2
     ;;
   *)
-  echo "Use init|rebuild"
+  echo "Use init|phase1|phase2"
   exit 1
 esac
 
 exit $?
+
+# vim: ts=2 sw=2 expandtab

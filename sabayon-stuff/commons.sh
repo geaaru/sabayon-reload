@@ -201,4 +201,37 @@ sabayon_configure_portage () {
   return 0
 }
 
+sabayon_config_portage_licenses () {
+
+   # Maintains only licenses directory
+   #   ! -name '*profiles' \
+   local rmdirs=$(find ${PORTDIR} -maxdepth 1 -type d \
+      ! -path ${PORTDIR} ! -name '*licenses')
+
+   for i in ${rmdirs} ; do
+      echo "Removing dir ${i} ..."
+      rm -rf ${i}
+   done
+
+   # Accept all licenses
+   ls ${PORTDIR}/licenses -1 | xargs -0 > /etc/entropy/packages/license.accept || return 1
+
+   return 0
+}
+
+sabayon_config_default_repos () {
+
+   mv /etc/entropy/repositories.conf.d/entropy_sabayonlinux.org.example \
+      /etc/entropy/repositories.conf.d/entropy_sabayonlinux.org || return 1
+
+   return 0
+}
+
+sabayon_save_pkgs_install_list () {
+   # Writing package list file
+   equo q list installed -qv > /etc/sabayon-pkglist || return 1
+
+   return 0
+}
+
 # vim: ts=3 sw=3 expandtab
