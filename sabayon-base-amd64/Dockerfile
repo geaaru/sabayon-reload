@@ -23,5 +23,7 @@ ENV HOME /root
 # Define working directory.
 WORKDIR /root
 
+RUN rm -rf /sabayon-stuff /usr/portage/
+
 # Define default command.
 CMD ["bash"]

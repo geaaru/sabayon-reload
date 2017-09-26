@@ -90,6 +90,7 @@ FILES_TO_REMOVE=(
 
   # cleaning licenses accepted
   "/usr/portage/licenses"
+  "/usr/portage/metadata"
 
   # Cleanup old portage profile files/dirs
   "/etc/make.profile"
@@ -136,14 +137,27 @@ sabayon_base_phase2 () {
     --force-system "${PACKAGES_TO_REMOVE[@]}" || return 1
 
   # ensuring all is right
+  echo "Execute deptest ..."
   equo deptest || return 1
+  echo "Execute libtest ... "
   equo libtest || return 1
 
+  echo "Installing app-misc/ca-certifcates, app-crypt/gnupg..."
   equo i app-misc/ca-certificates app-crypt/gnupg || return 1
 
   # install vim
+  echo "Installing app-editors/vim ..."
   equo i app-editors/vim || return 1
 
+  # Assimilate changes of cache files of dev-libs/glib package that has these
+  # changes:
+  # /usr/lib64/gio/modules/giomodule.cache
+  # /usr/share/glib-2.0/schemas/gschemas.compiled
+  # NOTE: Assimilate doesn't return 0 on assimilated new hashes
+  #       but 10. Disable check on return value.
+  equo security oscheck --assimilate dev-libs/glib
+
+  echo "Starting security OS Check..."
   equo security oscheck || return 1
 
   # automake is installed by equo deptest.

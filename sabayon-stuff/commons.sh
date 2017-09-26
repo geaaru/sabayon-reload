@@ -205,7 +205,12 @@ sabayon_config_portage_licenses () {
 
    # Maintains only licenses directory
    #   ! -name '*profiles' \
+   # Metadata is needed to avoid this warning:
+   #!!! Repository 'x-portage' is missing masters attribute in '/usr/portage/metadata/layout.conf'
+   #!!! Set 'masters = gentoo' in this file for future compatibility
+
    local rmdirs=$(find ${PORTDIR} -maxdepth 1 -type d \
+      ! -name '*metadata' \
       ! -path ${PORTDIR} ! -name '*licenses')
 
    for i in ${rmdirs} ; do
