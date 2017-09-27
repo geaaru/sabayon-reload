@@ -39,6 +39,14 @@ Ansible tag for this image is *sabayon_stage3*.
 
 From stage3-sabayon-amd64 is configure sabayon repository and sync with last packages version.
 
+Ansible tag for this image is *sabayon_base*.
+
+### 4. sabayon-spinbase-amd64
+
+The purpose of this image is to provide an image of a Sabayon base with upgrades and tools,
+ready to be shipped on VM(s)/LiveCDs.
+
+Ansible tag for this image is *sabayon_spinbase*.
 
 ## Images Tree
 
@@ -67,6 +75,18 @@ For build step 2:
   $# ansible-playbook --tag sabayon_stage3 build.yml
 ```
 
+For build step 3:
+
+```bash
+  $# ansible-playbook --tag sabayon_base build.yml
+```
+
+For build step 4:
+
+```bash
+  $# ansible-playbook --tag sabayon_spinbase build.yml
+```
+
 For build all:
 
 ```bash
@@ -78,7 +98,7 @@ For build all:
 Current ansible configuration permit build process on localhost but it is possible configure Ansible to build images to a remote machine.
 See Ansible documentation for details.
 
-In particular, under localhost host variable file it is possible customize this options.
+In particular, under localhost host variable file it is possible customize these options:
 
 | Option   |  Default | Description |
 |----------|----------|-------------|
@@ -86,3 +106,4 @@ In particular, under localhost host variable file it is possible customize this 
 | docker_user  | geaaru  | Name of the user used for create docker images  |
 | gentoo_dist_server  | http://distfiles.gentoo.org/  | URL where retrieve portage tarball and gentoo stage3 file.  |
 | gentoo_skip_sync | 1 | Execute portage sync before build process (1) or not (0). |
+| sabayon_skip_sync | 1 | Execute equo update before install packages (1) or not (0). |

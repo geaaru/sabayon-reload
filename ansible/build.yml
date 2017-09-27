@@ -17,3 +17,7 @@
         name: build
         tasks_from: sabayon_base
 
+    - name: Build Sabayon Spinbase
+      include_role:
+        name: build
+        tasks_from: sabayon_spinbase

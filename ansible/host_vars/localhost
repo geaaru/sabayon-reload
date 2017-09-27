@@ -4,4 +4,5 @@ builder_rootdir: ..
 docker_user: geaaru
 gentoo_dist_server: http://distfiles.gentoo.org/
 gentoo_skip_sync: 1
+sabayon_skip_sync: 1
 
