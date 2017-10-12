@@ -3,8 +3,7 @@
 
 . $(dirname $(readlink -f $BASH_SOURCE))/commons.sh
 
-SABAYON_KERNEL_PKG="sys-kernel/linux-sabayon"
-
+SABAYON_KERNEL_PKG="${SABAYON_KERNEL_PKG:-sys-kernel/linux-sabayon}"
 
 FILES_TO_REMOVE=(
    "/.viminfo"

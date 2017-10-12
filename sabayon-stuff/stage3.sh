@@ -60,7 +60,18 @@ sabayon_stage3_rebuildall () {
   emerge -C ${PACKAGES2CLEAN} || return 1
 
   echo "Installing layman package.."
-  emerge -j layman || return 1
+  # The following USE changes are necessary to proceed:
+  # (see "package.use" in the portage(5) man page for more details)
+  # required by dev-python/cryptography-2.0.2::gentoo
+  # required by dev-python/urllib3-1.22::gentoo
+  # required by dev-python/requests-2.18.2-r1::gentoo
+  # required by dev-python/ssl-fetch-0.4::gentoo
+  # required by app-portage/layman-2.4.2::gentoo
+  # required by layman (argument)
+  # >=dev-libs/openssl-1.0.2l -bindist
+  # For this is needed force rebuild of openssh!
+  # TODO: if set useflag in package.use directory
+  USE="-bindist" emerge -j layman openssh --autounmask-keep-masks || return 1
 
   echo "Depclean..."
   emerge --depclean

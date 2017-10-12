@@ -11,20 +11,20 @@ SABAYON_STAGE3_PACKAGE_USE=(
   "dev-lang/python sqlite"
   "sys-apps/file python"
 )
-SABAYON_STAGE3_KEYWORDS_FILE="00-sabayon.package.keywords"
-SABAYON_STAGE3_USE_FILE="00-sabayon.package.use"
+SABAYON_STAGE3_KEYWORDS_FILE="${SABAYON_STAGE3_KEYWORDS_FILE:-00-sabayon.package.keywords}"
+SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-00-sabayon.package.use}"
 SABAYON_EQUO_DIR="/var/lib/entropy/client/database/"
-SABAYON_ARCH="amd64"
-SABAYON_PORTAGE_CONF_REPOS=https://github.com/Sabayon/build.git
-SABAYON_PORTAGE_CONF_INSTALLDIR="/opt"
-SABAYON_PORTAGE_CONF_INSTALLNAME="sabayon-build"
+SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
+SABAYON_PORTAGE_CONF_REPOS=${SABAYON_PORTAGE_CONF_REPOS:-https://github.com/Sabayon/build.git}
+SABAYON_PORTAGE_CONF_INSTALLDIR="${SABAYON_PORTAGE_CONF_INSTALLDIR:-/opt}"
+SABAYON_PORTAGE_CONF_INSTALLNAME="${SABAYON_PORTAGE_CONF_INSTALLNAME:-sabayon-build}"
 
 sabayon_stage3_keywords () {
 
   local i=0
   local kfile="/etc/portage/package.keywords/${SABAYON_STAGE3_KEYWORDS_FILE}"
 
-  rm ${kfile} 2>&1 >/dev/null
+  rm ${kfile} >/dev/null 2>&1
 
   for ((i = 0 ; i < ${#SABAYON_STAGE3_PACKAGE_KEYWORDS[@]} ; i++)) ; do
     echo ${SABAYON_STAGE3_PACKAGE_KEYWORDS[${i}]} >> ${kfile}

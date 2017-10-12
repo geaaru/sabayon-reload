@@ -1,11 +1,11 @@
 #!/bin/bash
 # Author: Geaaru, geaaru@gmail.com
 
-MAKE_PORTAGE_FILE=/etc/portage/make.conf
-REPOS_CONF_DIR=/etc/portage/repos.conf/
-GENTOO_PROFILE_VERSION="13.0"
-PORTDIR=/usr/portage
-PORTAGE_LATEST_PATH=/portage-latest.tar.xz
+MAKE_PORTAGE_FILE=${MAKE_PORTAGE_FILE:-/etc/portage/make.conf}
+REPOS_CONF_DIR=${REPOS_CONF_DIR:-/etc/portage/repos.conf/}
+GENTOO_PROFILE_VERSION="${GENTOO_PROFILE_VERSION:-13.0}"
+PORTDIR=${PORTDIR:-/usr/portage}
+PORTAGE_LATEST_PATH=${PORTAGE_LATEST_PATH:-/portage-latest.tar.xz}
 
 sabayon_set_default_shell () {
   local shell=${1:-/bin/bash}

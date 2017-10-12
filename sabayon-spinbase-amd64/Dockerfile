@@ -18,7 +18,7 @@ RUN /sabayon-stuff/sabayon_spinbase.sh init
 ARG CACHEBUST=1
 RUN /sabayon-stuff/sabayon_spinbase.sh phase1
 
-#RUN rm -rf /sabayon-stuff /usr/portage/
+RUN rm -rf /sabayon-stuff /usr/portage/
 
 # Define default command.
 CMD ["bash"]

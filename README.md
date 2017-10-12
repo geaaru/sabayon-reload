@@ -66,25 +66,25 @@ gentoo-stage3
 Under ansible directory, for build step 1:
 
 ```bash
-  $# ansible-playbook --tag gentoo_stage3 build.yml
+  $# ansible-playbook --tags gentoo_stage3 build.yml
 ```
 
 For build step 2:
 
 ```bash
-  $# ansible-playbook --tag sabayon_stage3 build.yml
+  $# ansible-playbook --tags sabayon_stage3 build.yml
 ```
 
 For build step 3:
 
 ```bash
-  $# ansible-playbook --tag sabayon_base build.yml
+  $# ansible-playbook --tags sabayon_base build.yml
 ```
 
 For build step 4:
 
 ```bash
-  $# ansible-playbook --tag sabayon_spinbase build.yml
+  $# ansible-playbook --tags sabayon_spinbase build.yml
 ```
 
 For build all:
