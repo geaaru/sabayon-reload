@@ -96,6 +96,15 @@ FILES_TO_REMOVE=(
   "/etc/make.profile"
 )
 
+PACKAGE_TO_ASSIMILATE=(
+  # /usr/lib64/gio/modules/giomodule.cache
+  # /usr/share/glib-2.0/schemas/gschemas.compiled
+  "dev-libs/glib"
+  # @@ dev-lang/python-exec-2.4.5: found altered files
+  # /etc/python-exec/python-exec.conf
+  "dev-lang/python-exec"
+)
+
 sabayon_base_init () {
 
   sabayon_config_portage_licenses || return 1
@@ -149,13 +158,10 @@ sabayon_base_phase2 () {
   echo "Installing app-editors/vim ..."
   equo i app-editors/vim || return 1
 
-  # Assimilate changes of cache files of dev-libs/glib package that has these
-  # changes:
-  # /usr/lib64/gio/modules/giomodule.cache
-  # /usr/share/glib-2.0/schemas/gschemas.compiled
+  # Assimilate changes
   # NOTE: Assimilate doesn't return 0 on assimilated new hashes
   #       but 10. Disable check on return value.
-  equo security oscheck --assimilate dev-libs/glib
+  equo security oscheck --assimilate "${PACKAGE_TO_ASSIMILATE[@]}"
 
   echo "Starting security OS Check..."
   equo security oscheck || return 1
