@@ -48,10 +48,12 @@ ready to be shipped on VM(s)/LiveCDs.
 
 Ansible tag for this image is *sabayon_spinbase*.
 
-### 5. sabayon-spinbase-amd64
+### 5. sabayon-builder-amd64
 
 The purpose of this project is to provide an image of Sabayon docker-capable builder.
 It is just a Sabayon base with upgrades and compilation tools.
+
+For complete documentation see [Sabayon/docker-builder-amd64](https://github.com/Sabayon/docker-builder-amd64) page.
 
 Ansible tag for this image is *sabayon_builder*.
 
