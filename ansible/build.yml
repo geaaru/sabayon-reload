@@ -21,3 +21,8 @@
       include_role:
         name: build
         tasks_from: sabayon_spinbase
+
+    - name: Build Sabayon Builder
+      include_role:
+        name: build
+        tasks_from: sabayon_builder

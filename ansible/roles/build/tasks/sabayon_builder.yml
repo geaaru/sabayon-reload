@@ -1,0 +1,39 @@
+---
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for build sabayon-builder-amd64 image
+
+- name: "Sabayon Builder AMD64"
+  tags:
+    - sabayon_builder
+  vars:
+    current_build: "sabayon-builder-amd64"
+    current_arch: 'amd64'
+    current_builddir: "{{ builder_rootdir }}/sabayon-builder-amd64"
+    current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+    docker_image_name: "{{ docker_user }}/sabayon-builder-amd64"
+  block:
+
+    - name: "{{ current_build }}: Check for updated portage tarball"
+      include_role:
+        name: commons
+        tasks_from: download_portage
+
+    - name: "{{ current_build }}: Prepare build context"
+      include_role:
+        name: commons
+        tasks_from: prepare_ctx
+
+    - name: "{{ current_build }}: Create image {{ docker_image_name }}"
+      command: >
+        docker build -t {{ docker_image_name }}
+        --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
+        --build-arg SABAYON_SKIP_SYNC={{ sabayon_skip_sync }}
+        --build-arg USER={{ docker_user }}
+        --build-arg CACHEBUST={{ current_date }} .
+      args:
+        chdir: "{{ current_builddir }}"
+      register: sabayon_builder_build
+
+    - name: "{{ current_build }}: Build result"
+      debug: var=sabayon_builder_build.stdout_lines
+

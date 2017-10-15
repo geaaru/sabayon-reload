@@ -6,6 +6,7 @@ REPOS_CONF_DIR=${REPOS_CONF_DIR:-/etc/portage/repos.conf/}
 GENTOO_PROFILE_VERSION="${GENTOO_PROFILE_VERSION:-13.0}"
 PORTDIR=${PORTDIR:-/usr/portage}
 PORTAGE_LATEST_PATH=${PORTAGE_LATEST_PATH:-/portage-latest.tar.xz}
+SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
 
 sabayon_set_default_shell () {
   local shell=${1:-/bin/bash}
@@ -232,20 +233,26 @@ sabayon_configure_portage () {
 
 sabayon_config_portage_licenses () {
 
+  local only_creation_file=${1:-0}
+
   # Maintains only licenses directory
   #   ! -name '*profiles' \
     # Metadata is needed to avoid this warning:
   #!!! Repository 'x-portage' is missing masters attribute in '/usr/portage/metadata/layout.conf'
   #!!! Set 'masters = gentoo' in this file for future compatibility
 
-  local rmdirs=$(find ${PORTDIR} -maxdepth 1 -type d \
-    ! -name '*metadata' \
-    ! -path ${PORTDIR} ! -name '*licenses')
+  if [ ${only_creation_file} -eq 0 ] ; then
 
-  for i in ${rmdirs} ; do
-    echo "Removing dir ${i} ..."
-    rm -rf ${i}
-  done
+    local rmdirs=$(find ${PORTDIR} -maxdepth 1 -type d \
+      ! -name '*metadata' \
+      ! -path ${PORTDIR} ! -name '*licenses')
+
+    for i in ${rmdirs} ; do
+      echo "Removing dir ${i} ..."
+      rm -rf ${i}
+    done
+
+  fi
 
   # Accept all licenses
   ls ${PORTDIR}/licenses -1 | xargs -0 > /etc/entropy/packages/license.accept || return 1
@@ -332,6 +339,20 @@ sabayon_create_dracut_initramfs () {
     echo "Skip generation of initramfs with dracut."
 
   fi
+
+  return 0
+}
+
+sabayon_configure_repoman () {
+
+  mkdir -p ${PORTDIR}/distfiles/ || return 1
+
+  wget http://www.gentoo.org/dtd/metadata.dtd \
+    -O ${PORTDIR}/distfiles/metadata.dtd || return 1
+
+  chown -R root:portage ${PORTDIR}/distfiles/ || return 1
+
+  chmod g+w ${PORTDIR}/distfiles/ || return 1
 
   return 0
 }
