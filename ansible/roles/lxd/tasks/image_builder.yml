@@ -1,0 +1,26 @@
+---
+
+# Author: Geaaru, geaaru@gmail.com
+# Description: Role for create lxd image from docker
+
+- name: "{{ current_build }}: Create LXD image"
+  environment:
+    LXD_TARGET: "{{ lxd_target_server }}:"
+    OS: "{{ lxd_os_image }}"
+    DISTRO: "{{ lxd_distro_image }}"
+    RELEASE: "{{ lxd_release_image }}"
+    UNPRIVILEGED: "{{ lxd_unprivileged_image }}"
+    IMAGE_ALIAS: "{{ lxd_image_alias }}"
+  command: >
+    sabayon-lxd-imagebuilder
+    --stagingdir {{ staging_dir}}
+    --image {{ docker_image_name }}
+    --host-arch {{ current_arch }}
+    --arch {{ current_arch }}
+    --import
+  register: sabayon_lxd_imagebuilder
+
+- name: "{{ current_build }}: Get image Id"
+  set_fact:
+    image_id: "{{ ( sabayon_lxd_imagebuilder.stdout | regex_search('fingerprint: .*') ).split(' ')[1] }}"
+

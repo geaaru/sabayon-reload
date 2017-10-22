@@ -1,0 +1,43 @@
+---
+
+# Author: Geaaru, geaaru@gmail.com
+# Description: Role for test lxd image from docker
+
+- name: "{{ current_build }}: Test image"
+  block:
+
+    - name: "{{ current_build }}: Create LXD Image"
+      include_role:
+        name: lxd
+        tasks_from: image_builder
+
+    - name: "{{ current_build }}: Create container"
+      lxd_container:
+        name: "{{ lxd_container_name }}"
+        state: started
+        config:
+          raw.lxc: "{{ lxd_config_raw_lxc }}"
+        source:
+          type: image
+          mode: pull
+          fingerprint: "{{ image_id }}"
+          protocol: lxd
+        profiles: [ "default" ]
+        timeout: 600
+
+    - name: "{{ current_build }}: Wait {{ container_lxd_creation_ws_sec }} seconds."
+      pause:
+        seconds: "{{ container_lxd_creation_ws_sec | int }}"
+
+    - name: "{{ current_build }}: Check if systemd is started correctly"
+      raw: "lxc exec {{ lxd_target_server }}:{{ lxd_container_name }} systemctl status"
+
+    - name: "{{ current_build }}: Stop container"
+      lxd_container:
+        name: "{{ lxd_container_name }}"
+        state: stopped
+
+    - name: "{{ current_build }}: Delete container"
+      lxd_container:
+        name: "{{ lxd_container_name }}"
+        state: absent

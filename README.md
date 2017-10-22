@@ -122,3 +122,19 @@ In particular, under localhost host variable file it is possible customize these
 | gentoo_dist_server  | http://distfiles.gentoo.org/  | URL where retrieve portage tarball and gentoo stage3 file.  |
 | gentoo_skip_sync | 1 | Execute portage sync before build process (1) or not (0). |
 | sabayon_skip_sync | 1 | Execute equo update before install packages (1) or not (0). |
+| staging_dir | ./staging | Directory used by sabayon-lxd-imagebuilder for convert docker image, etc. |
+| lxd_target_server | local | Target LXD Server where upload images |
+
+
+## Test Suites
+
+To permit a continuos delivery of the images and verify that all works fine there are different
+playbooks to convert docker images of different tecnologies. Currently, it is supported LXD.
+
+For test docker image on LXD images (or with same tags for test customized test):
+
+```bash
+  $# ansible-playbook lxd.yml
+```
+
+This playbook create also LXD images related to every steps on configured LXD server.

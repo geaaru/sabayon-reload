@@ -1,0 +1,51 @@
+---
+
+- hosts:
+  - all
+  connection: local
+  vars:
+    container_lxd_creation_ws_sec: 5
+  gather_facts: false
+  tasks:
+    - name: Upload to LXD Gentoo Stage3 Image
+      tags:
+        - gentoo_stage3
+      vars:
+        current_build: "stage3-gentoo-systemd-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/stage3-gentoo-systemd-amd64"
+        lxd_os_image: "gentoo"
+        lxd_distro_image: "Gentoo"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 0
+        lxd_image_alias: "Gentoo Stage3"
+        lxd_container_name: "gentoostage3"
+        # Gentoo Stage3 seems use yet openrc as default.
+        # so init doesn't use systemd
+        lxd_config_raw_lxc: "lxc.init.cmd = /usr/lib/systemd/systemd systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test
+
+    - name: Upload to LXD Sabayon Stage3 Image
+      tags:
+        - sabayon_stage3
+      vars:
+        current_build: "stage3-sabayon-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/stage3-sabayon-amd64"
+        lxd_os_image: "sabayon"
+        lxd_distro_image: "Sabayon"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 0
+        lxd_image_alias: "Sabayon Stage3"
+        lxd_container_name: "sabayonstage3"
+        # Sabayon Stage3 seems use yet openrc as default.
+        # so init doesn't use systemd. This MUST be fixed on
+        # docker image
+        lxd_config_raw_lxc: "lxc.init.cmd = /usr/lib/systemd/systemd systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test
+
+
