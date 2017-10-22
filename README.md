@@ -124,6 +124,7 @@ In particular, under localhost host variable file it is possible customize these
 | sabayon_skip_sync | 1 | Execute equo update before install packages (1) or not (0). |
 | staging_dir | ./staging | Directory used by sabayon-lxd-imagebuilder for convert docker image, etc. |
 | lxd_target_server | local | Target LXD Server where upload images |
+| lxd_skip_pull | 1 | Skip pull from docker image on create LXD images (1) or not (0). Normally, is set to 1 when images are created locally. |
 
 
 ## Test Suites

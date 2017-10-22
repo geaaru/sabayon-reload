@@ -67,7 +67,7 @@ sabayon_set_locate () {
 
   echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen || return 1
 
-  locale-gen
+  /usr/sbin/locale-gen
 
   return 0
 }
@@ -195,6 +195,10 @@ sabayon_init_portage () {
   fi
 
   sabayon_set_profile || return 1
+
+  # Wait to a fix about this on gentoo upstream
+  echo "Remove openrc from base packages"
+  sed -e 's/sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
 
   sabayon_set_pyver || return 1
 

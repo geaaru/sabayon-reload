@@ -19,10 +19,11 @@
         lxd_release_image: "daily"
         lxd_unprivileged_image: 0
         lxd_image_alias: "Gentoo Stage3"
-        lxd_container_name: "gentoostage3"
+        lxd_container_name: "gentoo-stage3"
         # Gentoo Stage3 seems use yet openrc as default.
-        # so init doesn't use systemd
-        lxd_config_raw_lxc: "lxc.init.cmd = /usr/lib/systemd/systemd systemd.legacy_systemd_cgroup_controller=yes"
+        # so init doesn't use systemd. I fix this on docker image.
+        # lxd_config_raw_lxc: "lxc.init.cmd = /usr/lib/systemd/systemd systemd.legacy_systemd_cgroup_controller=yes"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
       include_role:
         name: lxd
         tasks_from: image_test
@@ -39,13 +40,47 @@
         lxd_release_image: "daily"
         lxd_unprivileged_image: 0
         lxd_image_alias: "Sabayon Stage3"
-        lxd_container_name: "sabayonstage3"
+        lxd_container_name: "sabayon-stage3"
         # Sabayon Stage3 seems use yet openrc as default.
-        # so init doesn't use systemd. This MUST be fixed on
+        # so init doesn't use systemd. This is been fixed on
         # docker image
-        lxd_config_raw_lxc: "lxc.init.cmd = /usr/lib/systemd/systemd systemd.legacy_systemd_cgroup_controller=yes"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
       include_role:
         name: lxd
         tasks_from: image_test
 
+    - name: Upload to LXD Sabayon Base Image
+      tags:
+        - sabayon_base
+      vars:
+        current_build: "sabayon-base-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/sabayon-base-amd64"
+        lxd_os_image: "sabayon"
+        lxd_distro_image: "Sabayon"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 0
+        lxd_image_alias: "Sabayon Base"
+        lxd_container_name: "sabayon-base"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test
 
+    - name: Upload to LXD Sabayon Spinbase Image
+      tags:
+        - sabayon_spinbase
+      vars:
+        current_build: "sabayon-spinbase-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/sabayon-spinbase-amd64"
+        lxd_os_image: "sabayon"
+        lxd_distro_image: "Sabayon"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 0
+        lxd_image_alias: "Sabayon Spinbase"
+        lxd_container_name: "sabayon-spinbase"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test

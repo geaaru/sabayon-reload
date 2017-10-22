@@ -11,6 +11,7 @@
     RELEASE: "{{ lxd_release_image }}"
     UNPRIVILEGED: "{{ lxd_unprivileged_image }}"
     IMAGE_ALIAS: "{{ lxd_image_alias }}"
+    PULL_SKIP: "{{ lxd_skip_pull }}"
   command: >
     sabayon-lxd-imagebuilder
     --stagingdir {{ staging_dir}}

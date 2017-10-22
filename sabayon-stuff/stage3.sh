@@ -53,8 +53,8 @@ sabayon_stage3_rebuildall () {
   emerge -C eudev virtual/udev || return 1
 
   echo "Emerge @systemd && @world"
-
-  emerge ${emerge_opts} @system @world || return 1
+  # sysv-utils needed for set /sbin/init as systemd daemon
+  USE="sysv-utils" emerge ${emerge_opts} @system @world || return 1
 
   echo "Cleaning packages:\n${PACKAGES2CLEAN}"
   emerge -C ${PACKAGES2CLEAN} || return 1
@@ -75,6 +75,9 @@ sabayon_stage3_rebuildall () {
 
   echo "Depclean..."
   emerge --depclean
+
+  # Set locale for testing phase
+  sabayon_set_locale_conf || return 1
 
   echo "Removing packages directory..."
   rm -rf ${PORTDIR}/packages
