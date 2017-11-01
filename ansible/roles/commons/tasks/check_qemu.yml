@@ -1,0 +1,36 @@
+---
+# Author: Geaaru, geaaru@gmail.com
+# Description: contains tasks for check needed of QEMU virtualization
+
+- name: "{{ current_build }}: Check if it is needed use of qemu."
+  command: /bin/uname -m
+  register: uname_m
+
+- name: "{{ current_build }}: Check arch"
+  set_fact:
+    host_arch: "{{ uname_m.stdout }}"
+    qemu_is_needed: "{{ ( ( uname_m.stdout.strip() == 'x86_64' ) | bool ) and ( ( current_arch != 'amd64' ) | bool ) }}"
+    arm_for_amd64: "{{ ( ( uname_m.stdout.strip()[0:3] == 'arm' ) | bool ) and ( ( current_arch == 'amd64' ) | bool ) }}"
+    is_amd64_arch: "{{ ( current_arch == 'amd64' ) | bool }}"
+    is_arm_arch: "{{ ( current_arch == 'arm' ) | bool }}"
+
+- name: "{{ current_build }}: Block build of AMD64 from other arch"
+  fail:
+    msg: "From {{ host_arch }} is not possible build image for AMD64"
+  when: arm_for_amd64
+
+- name: "{{ current_build }}: Check if enable QEMU CPU Emulator"
+  stat:
+    path: /proc/sys/fs/binfmt_misc/arm
+  register: binfmt_arm
+  when: is_arm_arch and qemu_is_needed
+
+- name: "{{ current_build }}: Fail if QEMU CPU Emulator is not Active"
+  fail:
+    msg: "Register QEMU ARM binary to /proc/sys/fs/binfmt_misc/register"
+  when: is_arm_arch and qemu_is_needed and not binfmt_arm.stat.exists
+
+- name: "{{ current_build }}: Retrieve QEMU path"
+  command: "cat /proc/sys/fs/binfmt_misc/arm | grep interpreter | cut -d' ' -f2"
+  when: is_arm_arch and qemu_is_needed
+

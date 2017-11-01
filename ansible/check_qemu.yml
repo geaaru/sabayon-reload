@@ -1,0 +1,33 @@
+---
+
+- hosts:
+    - all
+  tasks:
+    - name: "Check Build AMD64"
+      vars:
+        current_arch: 'amd64'
+        for_amd64: True
+        for_arm: False
+      block:
+        - name: "Check QEMU"
+          include_role:
+            name: commons
+            tasks_from: check_qemu
+        - name: "Debug"
+          debug:
+            msg: "For arch {{ current_arch }} from arch {{ host_arch }} QEMU is Needed: {{ qemu_is_needed }}"
+
+    - name: "Check Build ARM"
+      vars:
+        current_arch: 'armv7a_hardfp'
+        for_amd64: True
+        for_arm: False
+      block:
+        - name: "Check QEMU"
+          include_role:
+            name: commons
+            tasks_from: check_qemu
+
+        - name: "Debug"
+          debug:
+            msg: "For arch {{ current_arch }} from arch {{ host_arch }} QEMU is Needed: {{ qemu_is_needed }}"

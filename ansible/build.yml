@@ -2,27 +2,83 @@
 - hosts:
     - all
   tasks:
-    - name: Build Gentoo Stage3
-      include_role:
-        name: build
-        tasks_from: gentoo_stage3
 
-    - name: Build Sabayon Stage3
+    - name: Check QEMU
+      tags:
+        - setup
+        - amd64
+        - arm7
       include_role:
-        name: build
-        tasks_from: sabayon_stage3
+        name: commons
+        tasks_from: check_qemu
 
-    - name: Build Sabayon Base
-      include_role:
-        name: build
-        tasks_from: sabayon_base
+    - name: Build AMD64 image
+      tags:
+        - amd64
+      vars:
+        current_arch: 'amd64'
+        for_amd64: True
+        for_arm: False
+      block:
+        - name: Build Gentoo Stage3
+          tags:
+            - setup
+          include_role:
+            name: build
+            tasks_from: gentoo_stage3
 
-    - name: Build Sabayon Spinbase
-      include_role:
-        name: build
-        tasks_from: sabayon_spinbase
+        - name: Build Sabayon Stage3
+          include_role:
+            name: build
+            tasks_from: sabayon_stage3
 
-    - name: Build Sabayon Builder
-      include_role:
-        name: build
-        tasks_from: sabayon_builder
+        - name: Build Sabayon Base
+          include_role:
+            name: build
+            tasks_from: sabayon_base
+
+        - name: Build Sabayon Spinbase
+          include_role:
+            name: build
+            tasks_from: sabayon_spinbase
+
+        - name: Build Sabayon Builder
+          include_role:
+            name: build
+            tasks_from: sabayon_builder
+
+    - name: Build ARM-7A image
+      tags:
+        - arm7
+      vars:
+        current_arch: 'armv7a_hardfp'
+        for_amd64: False
+        for_arm: True
+      block:
+        - name: Build Gentoo Stage3
+          tags:
+            - setup
+          include_role:
+            name: build
+            tasks_from: gentoo_stage3
+
+#        - name: Build Sabayon Stage3
+#          include_role:
+#            name: build
+#            tasks_from: sabayon_stage3
+
+#        - name: Build Sabayon Base
+#          include_role:
+#            name: build
+#            tasks_from: sabayon_base
+
+#        - name: Build Sabayon Spinbase
+#          include_role:
+#            name: build
+#            tasks_from: sabayon_spinbase
+
+#        - name: Build Sabayon Builder
+#          include_role:
+#            name: build
+#            tasks_from: sabayon_builder
+

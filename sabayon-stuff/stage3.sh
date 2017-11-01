@@ -87,12 +87,73 @@ sabayon_stage3_rebuildall () {
 
 }
 
+# Temporary separation for arm because
+# currently stage3 is old and on arm
+# is not present systemd profile
+sabayon_stage3_arm_rebuildall () {
+
+  local i=0
+  local emerge_opts="-j2 --newuse --deep --with-bdeps=y"
+  local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
+  local packages_use=(
+    "sys-apps/util-linux -systemd -build -udev"
+  )
+
+  sabayon_init_portage || return 1
+
+  echo "Unmerge eudev not compliant with systemd (default package on latest Gentoo image)"
+  emerge -C eudev virtual/udev sys-apps/openrc app-eselect/eselect-python || return 1
+
+  mkdir -p /etc/portage/package.use/
+  for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
+    echo ${packages_use[${i}]} >> ${ufile}
+  done
+
+  echo "Emerge @systemd && @world"
+  # sysv-utils needed for set /sbin/init as systemd daemon
+  USE="-consolekit sysv-utils" emerge ${emerge_opts} @system @world || return 1
+
+  echo "Cleaning packages:\n${PACKAGES2CLEAN}"
+  emerge -C ${PACKAGES2CLEAN} || return 1
+
+  echo "Installing layman package.."
+  # The following USE changes are necessary to proceed:
+  # (see "package.use" in the portage(5) man page for more details)
+  # required by dev-python/cryptography-2.0.2::gentoo
+  # required by dev-python/urllib3-1.22::gentoo
+  # required by dev-python/requests-2.18.2-r1::gentoo
+  # required by dev-python/ssl-fetch-0.4::gentoo
+  # required by app-portage/layman-2.4.2::gentoo
+  # required by layman (argument)
+  # >=dev-libs/openssl-1.0.2l -bindist
+  # For this is needed force rebuild of openssh!
+  # TODO: if set useflag in package.use directory
+  USE="-bindist" emerge -j layman openssh --autounmask-keep-masks || return 1
+
+  echo "Depclean..."
+  emerge --depclean
+
+  # Set locale for testing phase
+  sabayon_set_locale_conf || return 1
+
+  echo "Removing packages directory..."
+  rm -rf ${PORTDIR}/packages
+  rm -rf ${PORTDIR}/distfiles/*
+
+  return 0
+
+}
+
 case $1 in
   init)
     sabayon_stage3_init
     ;;
   rebuild)
-    sabayon_stage3_rebuildall
+    if [ $SABAYON_ARCH == "amd64" ] ; then
+      sabayon_stage3_rebuildall
+    else
+      sabayon_stage3_arm_rebuildall
+    fi
     ;;
   *)
   echo "Use init|rebuild"

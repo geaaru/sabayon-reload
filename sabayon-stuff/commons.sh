@@ -4,6 +4,7 @@
 MAKE_PORTAGE_FILE=${MAKE_PORTAGE_FILE:-/etc/portage/make.conf}
 REPOS_CONF_DIR=${REPOS_CONF_DIR:-/etc/portage/repos.conf/}
 GENTOO_PROFILE_VERSION="${GENTOO_PROFILE_VERSION:-13.0}"
+GENTOO_PROFILE_NAME="${GENTOO_PROFILE_NAME:-/systemd}"
 PORTDIR=${PORTDIR:-/usr/portage}
 PORTAGE_LATEST_PATH=${PORTAGE_LATEST_PATH:-/portage-latest.tar.xz}
 SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
@@ -121,9 +122,9 @@ sabayon_set_python_targets () {
 
 sabayon_set_python_single_target () {
 
-  local target=${1:-python2_7}
+  local targets=${1:-python2_7}
 
-  echo "PYTHON_SINGLE_TARGETS=\"${targets}\"" >> ${MAKE_PORTAGE_FILE}
+  echo "PYTHON_SINGLE_TARGET=\"${targets}\"" >> ${MAKE_PORTAGE_FILE}
 
   return $?
 }
@@ -170,7 +171,7 @@ sabayon_install_overlay () {
 
 sabayon_set_profile () {
 
-  local profile=${1:-default/linux/amd64/${GENTOO_PROFILE_VERSION}/systemd}
+  local profile=${1:-default/linux/${SABAYON_ARCH}/${GENTOO_PROFILE_VERSION}${GENTOO_PROFILE_NAME}}
 
   eselect profile set ${profile}
 
@@ -198,7 +199,7 @@ sabayon_init_portage () {
 
   # Wait to a fix about this on gentoo upstream
   echo "Remove openrc from base packages"
-  sed -e 's/sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
+  sed -e 's/*sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
 
   sabayon_set_pyver || return 1
 

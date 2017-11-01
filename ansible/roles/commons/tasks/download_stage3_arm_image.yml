@@ -1,0 +1,37 @@
+---
+
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for download latest stage3 image of ARM arch
+
+- name: "{{ current_build }}: Download latest stage3 info"
+  get_url:
+    url: '{{ gentoo_dist_server }}/releases/arm/autobuilds/latest-stage3-{{ current_arch }}.txt'
+    dest: "/tmp/latest-stage3-{{ current_arch }}.txt"
+
+- name: "{{ current_build }}: Retrieve latest image data."
+  shell: cat "/tmp/latest-stage3-{{ current_arch }}.txt" | grep -v '#' | awk '{print $1}'
+  register: latest_stage3_file
+
+- name: "{{ current_build }}: Setup image variables"
+  set_fact:
+    stage3_file: "{{ latest_stage3_file.stdout.split('/')[1] }}"
+
+#- name: "{{ current_build }}: Retrieve latest stage3 tarball version"
+#  shell: wget -qO- '{{ gentoo_dist_server }}/releases/{{ current_arch }}/autobuilds/latest-stage3-{{ current_arch }}.txt' | grep -v '#' | awk '{print $1}'
+#  args:
+#    chdir: "{{ current_builddir }}"
+#  register: latest_stage3_version
+
+- name: "{{ current_build }}: Stat file {{ latest_stage3_file.stdout }}"
+  stat:
+    path: "{{ current_builddir }}/{{ stage3_file }}"
+  register: stat_file
+
+- name: "{{ current_build }}: Download stage3 image"
+  get_url:
+    url: '{{ gentoo_dist_server }}/releases/arm/autobuilds/{{ latest_stage3_file.stdout }}'
+    dest: "{{ current_builddir }}"
+  when: not stat_file.stat.exists
+
+
+

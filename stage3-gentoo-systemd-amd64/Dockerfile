@@ -6,6 +6,8 @@ ARG TARBALL=local
 ENV TARBALL ${TARBALL}
 ADD ${TARBALL} /
 
+ADD qemu-arm /usr/bin/qemu-arm
+
 # Add sabayon-stuff files
 # Note: Currently is not possible
 #       add directory that is present outside
@@ -25,6 +27,14 @@ ENV LC_ALL=en_US.UTF-8
 # Set GENTOO_SKIP_SYNC VARIABLE
 ARG GENTOO_SKIP_SYNC=0
 ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
+
+# Set arch
+ARG SABAYON_ARCH=amd64
+ENV SABAYON_ARCH ${SABAYON_ARCH}
+
+# Set profile
+ARG GENTOO_PROFILE_NAME=/systemd
+ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
 
 RUN /sabayon-stuff/stage3.sh init
 
