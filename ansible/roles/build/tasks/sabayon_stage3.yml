@@ -3,8 +3,6 @@
 # Description: Script for build stage3-sabayon-amd64 image
 
 - name: "Stage3 Sabayon Systemd AMD64"
-  tags:
-    - sabayon_stage3
   vars:
     current_build: "stage3-sabayon-amd64"
     current_arch: 'amd64'

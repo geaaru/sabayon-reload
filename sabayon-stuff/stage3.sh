@@ -17,7 +17,11 @@ sabayon_stage3_init () {
 
   sabayon_set_locate || return 1
 
-  sabayon_set_makeopts || return 1
+  if [ "${SABAYON_ARCH}" == "arm" ] ; then
+    sabayon_set_makeopts 2 || return 1
+  else
+    sabayon_set_makeopts || return 1
+  fi
 
   sabayon_set_python_targets || return 1
 

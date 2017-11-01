@@ -3,8 +3,6 @@
 # Description: Script for build sabayon-builder-amd64 image
 
 - name: "Sabayon Builder AMD64"
-  tags:
-    - sabayon_builder
   vars:
     current_build: "sabayon-builder-amd64"
     current_arch: 'amd64'

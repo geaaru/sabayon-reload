@@ -3,8 +3,6 @@
 # Description: Script for build sabayon-spinbase-amd64 image
 
 - name: "Sabayon Spinbase AMD64"
-  tags:
-    - sabayon_spinbase
   vars:
     current_build: "sabayon-spinbase-amd64"
     current_arch: 'amd64'

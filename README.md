@@ -27,26 +27,26 @@ For now only for amd64 platform.
 From Gentoo Stage3 tarball is created a docker image after update portage, rebuild @world and
 remove some unneeded packages.
 
-Ansible tag for this image is *amd64,gentoo_stage3*.
+Ansible tag for this image is *amd64,amd64_gentoo_stage3*.
 
 ### 2. stage3-sabayon-amd64
 
 From stage3-gentoo-systemd-amd64 is installed equo and entropy.
 
-Ansible tag for this image is *amd64,sabayon_stage3*.
+Ansible tag for this image is *amd64,amd64_sabayon_stage3*.
 
 ### 3. sabayon-base-amd64
 
 From stage3-sabayon-amd64 is configure sabayon repository and sync with last packages version.
 
-Ansible tag for this image is *amd64,sabayon_base*.
+Ansible tag for this image is *amd64,amd64_sabayon_base*.
 
 ### 4. sabayon-spinbase-amd64
 
 The purpose of this image is to provide an image of a Sabayon base with upgrades and tools,
 ready to be shipped on VM(s)/LiveCDs.
 
-Ansible tag for this image is *amd64,sabayon_spinbase*.
+Ansible tag for this image is *amd64,amd64_sabayon_spinbase*.
 
 ### 5. sabayon-builder-amd64
 
@@ -55,7 +55,7 @@ It is just a Sabayon base with upgrades and compilation tools.
 
 For complete documentation see [Sabayon/docker-builder-amd64](https://github.com/Sabayon/docker-builder-amd64) page.
 
-Ansible tag for this image is *amd64,sabayon_builder*.
+Ansible tag for this image is *amd64,amd64_sabayon_builder*.
 
 ## Images Tree
 
@@ -75,31 +75,31 @@ gentoo-stage3
 Under ansible directory, for build step 1:
 
 ```bash
-  $# ansible-playbook --tags amd64,gentoo_stage3 build.yml
+  $# ansible-playbook --tags amd64,amd64_gentoo_stage3 build.yml
 ```
 
 For build step 2:
 
 ```bash
-  $# ansible-playbook --tags amd64,sabayon_stage3 build.yml
+  $# ansible-playbook --tags amd64,amd64_sabayon_stage3 build.yml
 ```
 
 For build step 3:
 
 ```bash
-  $# ansible-playbook --tags amd64,sabayon_base build.yml
+  $# ansible-playbook --tags amd64,amd64_sabayon_base build.yml
 ```
 
 For build step 4:
 
 ```bash
-  $# ansible-playbook --tags amd64,sabayon_spinbase build.yml
+  $# ansible-playbook --tags amd64,amd64_sabayon_spinbase build.yml
 ```
 
 For build step 5:
 
 ```bash
-  $# ansible-playbook --tags amd64,sabayon_builder build.yml
+  $# ansible-playbook --tags amd64,amd64_sabayon_builder build.yml
 ```
 
 For build all:
@@ -107,6 +107,10 @@ For build all:
 ```bash
   $# ansible-playbook build.yml
 ```
+
+### ARM7 Stages
+
+I begin integration of some Docker stage for ARMv7 (32bit) but is under development.
 
 ### Customize Build Process
 

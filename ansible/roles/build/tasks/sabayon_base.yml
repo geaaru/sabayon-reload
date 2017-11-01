@@ -3,8 +3,6 @@
 # Description: Script for build sabayon-base-amd64 image
 
 - name: "Sabayon Base AMD64"
-  tags:
-    - sabayon_base
   vars:
     current_build: "sabayon-base-amd64"
     current_arch: 'amd64'

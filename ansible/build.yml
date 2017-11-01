@@ -3,15 +3,6 @@
     - all
   tasks:
 
-    - name: Check QEMU
-      tags:
-        - setup
-        - amd64
-        - arm7
-      include_role:
-        name: commons
-        tasks_from: check_qemu
-
     - name: Build AMD64 image
       tags:
         - amd64
@@ -19,30 +10,51 @@
         current_arch: 'amd64'
         for_amd64: True
         for_arm: False
+        sabayon_arch: 'amd64'
       block:
+
+        - name: Check QEMU
+          tags:
+            - amd64_gentoo_stage3
+            - amd64_sabayon_stage3
+            - amd64_sabayon_base
+            - amd64_sabayon_spinbase
+            - amd64_sabayon_builder
+          include_role:
+            name: commons
+            tasks_from: check_qemu
+
         - name: Build Gentoo Stage3
           tags:
-            - setup
+            - amd64_gentoo_stage3
           include_role:
             name: build
             tasks_from: gentoo_stage3
 
         - name: Build Sabayon Stage3
+          tags:
+            - amd64_sabayon_stage3
           include_role:
             name: build
             tasks_from: sabayon_stage3
 
         - name: Build Sabayon Base
+          tags:
+            - amd64_sabayon_base
           include_role:
             name: build
             tasks_from: sabayon_base
 
         - name: Build Sabayon Spinbase
+          tags:
+            - amd64_sabayon_spinbase
           include_role:
             name: build
             tasks_from: sabayon_spinbase
 
         - name: Build Sabayon Builder
+          tags:
+            - amd64_sabayon_builder
           include_role:
             name: build
             tasks_from: sabayon_builder
@@ -54,13 +66,28 @@
         current_arch: 'armv7a_hardfp'
         for_amd64: False
         for_arm: True
+        sabayon_arch: 'arm'
       block:
-        - name: Build Gentoo Stage3
+
+        - name: Check QEMU
           tags:
-            - setup
+            - arm7_gentoo_stage3
+            - arm7_sabayon_stage3
+            - arm7_sabayon_base
+            - arm7_sabayon_spinbase
+            - arm7_sabayon_builder
+          include_role:
+            name: commons
+            tasks_from: check_qemu
+
+        - name: Build Gentoo Stage3
+          vars:
+            docker_build_opts: '--build-arg GENTOO_PROFILE_NAME=/armv7a'
+          tags:
+            - arm7_gentoo_stage3
           include_role:
             name: build
-            tasks_from: gentoo_stage3
+            tasks_from: arm7_gentoo_stage3
 
 #        - name: Build Sabayon Stage3
 #          include_role:
