@@ -1,11 +1,12 @@
 ---
 # Author:  Geaaru, geaaru@gmail.com
-# Description: Script for build stage3-gentoo-systemd-amd64 image
+# Description: Script for build stage3-gentoo-systemd-armv7a_hardfp image
 
-- name: "Stage3 Gentoo Systemd AMD64"
+- name: "Stage3 Gentoo Systemd ARMV7A-hfp"
   vars:
     current_build: "stage3-gentoo-systemd-{{ current_arch }}"
-    current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd-{{ current_arch }}"
+    # TODO: mv stage3-gentoo-systemd-amd64 to stage3-gentoo-systemd
+    current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd-amd64"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/stage3-gentoo-systemd-{{ current_arch }}"
   block:
@@ -20,10 +21,19 @@
         name: commons
         tasks_from: prepare_ctx
 
-    - name: "{{ current_build }}: Download AMD64 stage3 image"
+    - name: "{{ current_build }}: Download ARM stage3 image"
       include_role:
         name: commons
-        tasks_from: download_stage3_image
+        tasks_from: download_stage3_arm_image
+
+    - name: "{{ current_build }}: Copy QEMU ARM binary"
+      command: cp /usr/bin/qemu-arm {{ current_builddir }}
+      when: for_arm and qemu_is_needed
+
+    - name: "{{ current_build }}: Set right Dockerfile"
+      set_fact:
+        docker_build_opts: "{{ docker_build_opts }} -f Dockerfile.qemu-arm"
+      when: for_arm and qemu_is_needed
 
     - name: "{{ current_build }}: Create image {{ docker_image_name }}"
       command: >
@@ -32,14 +42,20 @@
         --build-arg TARBALL={{ stage3_file }}
         --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
         --build-arg SABAYON_ARCH={{ sabayon_arch }}
+        --build-arg CACHEBUST={{ current_date }}
         {{ docker_build_opts }}
-        --build-arg CACHEBUST={{ current_date }} .
+        .
       args:
         chdir: "{{ current_builddir }}"
       register: gentoo_state3_build
 
     - name: "{{ current_build }}: Build result"
       debug: var=gentoo_state3_build.stdout_lines
+
+    - name: "{{ current_build }}: Remove QEMU ARM binary"
+      command: rm {{ current_builddir }}/qemu-arm
+      when: for_arm and qemu_is_needed
+      ignore_errors: True
 
     # I don't clean context to avoid rebuild
     #- name: "{{ current_build }}: Clean build context"

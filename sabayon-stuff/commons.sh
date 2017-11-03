@@ -9,6 +9,16 @@ PORTDIR=${PORTDIR:-/usr/portage}
 PORTAGE_LATEST_PATH=${PORTAGE_LATEST_PATH:-/portage-latest.tar.xz}
 SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
 
+sabayon_set_best_mirrors () {
+
+  which mirrorselect 2>&1 > /dev/null
+  if [ $? -eq 0 ] ; then
+    mirrorselect -s3 -b10 -o >> ${MAKE_PORTAGE_FILE} || return 1
+  fi
+
+  return 0
+}
+
 sabayon_set_default_shell () {
   local shell=${1:-/bin/bash}
 

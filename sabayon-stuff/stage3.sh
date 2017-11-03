@@ -31,6 +31,8 @@ sabayon_stage3_init () {
 
   sabayon_create_reposfile || return 1
 
+  sabayon_set_best_mirrors || return 1
+
   return 0
 }
 

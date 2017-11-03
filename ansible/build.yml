@@ -25,6 +25,8 @@
             tasks_from: check_qemu
 
         - name: Build Gentoo Stage3
+          vars:
+            docker_build_opts: ''
           tags:
             - amd64_gentoo_stage3
           include_role:
