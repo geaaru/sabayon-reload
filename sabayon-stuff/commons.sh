@@ -197,6 +197,69 @@ sabayon_set_pyver () {
   return $?
 }
 
+sabayon_add_profile4target () {
+
+  local target="$1"
+  local arch=${2:-${SABAYON_ARCH}}
+  local profile_name=${3:-${GENTOO_PROFILE_NAME}}
+  local eapi=${4:-5}
+
+  local profile_dir="${PORTDIR}/profiles/default/linux/${arch}/${GENTOO_PROFILE_VERSION}${profile_name}"
+  local profile_desc="default/linux/${arch}/${GENTOO_PROFILE_VERSION}${profile_name}"
+  local target_path="${PORTDIR}/profiles/targets/${target}"
+
+  echo "Adding profile ${profile_name} for arch ${arch} with target ${target}..."
+  echo "Profile Path: ${profile_dir}"
+
+  local pwd_dir=$(pwd)
+
+  if [ ! -d "${profile_dir}" ] ; then
+    mkdir -p ${profile_dir} || return 1
+    cd ${profile_dir}
+
+    echo ${eapi} > eapi
+    local target_relpath=$(realpath --relative-to=${profile_dir} ${target_path})
+
+    echo "..
+${target_relpath}"   > parent
+
+    cd ${pwd_dir}
+
+    local i=0
+    local word=""
+    local found=false
+    local inserted=false
+    local profiles_desc=""
+    local new_profile="${arch}           ${profile_desc}           dev"
+
+    while read line ; do
+      word=$(echo $line | cut -d' ' -f1)
+
+      if [ ${inserted} == false ] ; then
+        if [ "$word" = "${arch}" ] ; then
+          [ ${found} == false ] && found=true
+        else
+          if [ ${found} == true ] ; then
+            profiles_desc="${profiles_desc}\n${new_profile}"
+            inserted=true
+          fi
+        fi
+      fi
+
+      profiles_desc="${profiles_desc}\n${line}"
+
+    done < <(cat ${PORTDIR}/profiles/profiles.desc)
+
+    # Add profiles to list
+    echo -en "${profiles_desc}\n" > ${PORTDIR}/profiles/profiles.desc
+
+  else
+    echo "Profile ${profile_desc} is already present."
+  fi
+
+  return 0
+}
+
 sabayon_init_portage () {
 
   local skip_sync=${GENTOO_SKIP_SYNC:-0}
@@ -205,11 +268,13 @@ sabayon_init_portage () {
     emerge --sync || return 1
   fi
 
-  sabayon_set_profile || return 1
-
   # Wait to a fix about this on gentoo upstream
   echo "Remove openrc from base packages"
   sed -e 's/*sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
+
+  sabayon_add_profile4target "/systemd" || return 1
+
+  sabayon_set_profile || return 1
 
   sabayon_set_pyver || return 1
 
