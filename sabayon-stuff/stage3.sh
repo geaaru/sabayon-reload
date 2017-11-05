@@ -100,24 +100,29 @@ sabayon_stage3_arm_rebuildall () {
 
   local i=0
   local emerge_opts="-j1 --quiet-build --newuse --deep --with-bdeps=y"
-  local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
-  local packages_use=(
-    "sys-apps/util-linux -systemd -build -udev"
-  )
+#  local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
+#  local packages_use=(
+#    "sys-apps/util-linux -systemd -build -udev"
+#  )
 
   sabayon_init_portage || return 1
 
   echo "Unmerge eudev not compliant with systemd (default package on latest Gentoo image)"
-  emerge -C eudev virtual/udev sys-apps/openrc app-eselect/eselect-python virtual/perl-CPAN-Meta || return 1
+  emerge -C eudev virtual/udev sys-apps/openrc \
+    app-eselect/eselect-python virtual/perl-CPAN-Meta || return 1
 
   mkdir -p /etc/portage/package.use/
-  for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
-    echo ${packages_use[${i}]} >> ${ufile}
-  done
+#  for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
+#    echo ${packages_use[${i}]} >> ${ufile}
+#  done
 
   echo "Emerge @systemd && @world"
   # sysv-utils needed for set /sbin/init as systemd daemon
-  USE="-consolekit sysv-utils" emerge ${emerge_opts} @system @world -u || return 1
+  # TODO: add sysv-utils to package.use
+  USE="sysv-utils" emerge ${emerge_opts} @system @world || return 1
+
+  # This fix bug with /etc/init.d/functions.sh
+  emerge sys-devel/gcc-config sys-apps/gentoo-functions ${emerge_opts} || return 1
 
   echo "Cleaning packages:\n${PACKAGES2CLEAN}"
   emerge -C ${PACKAGES2CLEAN} || return 1
@@ -134,7 +139,7 @@ sabayon_stage3_arm_rebuildall () {
   # >=dev-libs/openssl-1.0.2l -bindist
   # For this is needed force rebuild of openssh!
   # TODO: if set useflag in package.use directory
-  USE="-bindist" emerge -j layman --autounmask-keep-masks || return 1
+  USE="-bindist" emerge -j layman vim --autounmask-keep-masks || return 1
 
   echo "Depclean..."
   emerge --depclean
