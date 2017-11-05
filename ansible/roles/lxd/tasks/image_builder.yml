@@ -4,6 +4,8 @@
 # Description: Role for create lxd image from docker
 
 - name: "{{ current_build }}: Create LXD image"
+  vars:
+    sab_lxd_imagebuilder_opts: "{{ sab_lxd_imagebuilder_opts | default('') }}"
   environment:
     LXD_TARGET: "{{ lxd_target_server }}:"
     OS: "{{ lxd_os_image }}"
@@ -16,9 +18,8 @@
     sabayon-lxd-imagebuilder
     --stagingdir {{ staging_dir}}
     --image {{ docker_image_name }}
-    --host-arch {{ current_arch }}
-    --arch {{ current_arch }}
     --import
+    {{ sab_lxd_imagebuilder_opts }}
   register: sabayon_lxd_imagebuilder
 
 - name: "{{ current_build }}: Get image Id"

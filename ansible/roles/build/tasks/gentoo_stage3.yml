@@ -5,7 +5,7 @@
 - name: "Stage3 Gentoo Systemd AMD64"
   vars:
     current_build: "stage3-gentoo-systemd-{{ current_arch }}"
-    current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/stage3-gentoo-systemd-{{ current_arch }}"
   block:

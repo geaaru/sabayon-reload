@@ -99,7 +99,7 @@ sabayon_stage3_rebuildall () {
 sabayon_stage3_arm_rebuildall () {
 
   local i=0
-  local emerge_opts="-j2 --newuse --deep --with-bdeps=y"
+  local emerge_opts="-j1 --quiet-build --newuse --deep --with-bdeps=y"
   local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
   local packages_use=(
     "sys-apps/util-linux -systemd -build -udev"

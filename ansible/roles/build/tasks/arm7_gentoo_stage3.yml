@@ -5,8 +5,7 @@
 - name: "Stage3 Gentoo Systemd ARMV7A-hfp"
   vars:
     current_build: "stage3-gentoo-systemd-{{ current_arch }}"
-    # TODO: mv stage3-gentoo-systemd-amd64 to stage3-gentoo-systemd
-    current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd-amd64"
+    current_builddir: "{{ builder_rootdir }}/stage3-gentoo-systemd"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/stage3-gentoo-systemd-{{ current_arch }}"
   block:

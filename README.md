@@ -102,6 +102,12 @@ For build step 5:
   $# ansible-playbook --tags amd64,amd64_sabayon_builder build.yml
 ```
 
+For build all AMD64 docker images:
+
+```bash
+  $# ansible-playbook --tags amd64
+```
+
 For build all:
 
 ```bash
