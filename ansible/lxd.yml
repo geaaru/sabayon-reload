@@ -17,8 +17,10 @@
         lxd_os_image: "gentoo"
         lxd_distro_image: "Gentoo"
         lxd_release_image: "daily"
-        lxd_unprivileged_image: 0
+        lxd_unprivileged_image: 1
+        lxd_unpriv_funcs: "journald dev_hugepages"
         lxd_image_alias: "Gentoo Stage3"
+        lxd_image_descr: "Gentoo Stage3 from Docker image of user {{ docker_user }}"
         lxd_container_name: "gentoo-stage3"
         # Gentoo Stage3 seems use yet openrc as default.
         # so init doesn't use systemd. I fix this on docker image.

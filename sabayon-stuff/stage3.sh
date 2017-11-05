@@ -108,7 +108,7 @@ sabayon_stage3_arm_rebuildall () {
   sabayon_init_portage || return 1
 
   echo "Unmerge eudev not compliant with systemd (default package on latest Gentoo image)"
-  emerge -C eudev virtual/udev sys-apps/openrc app-eselect/eselect-python || return 1
+  emerge -C eudev virtual/udev sys-apps/openrc app-eselect/eselect-python virtual/perl-CPAN-Meta || return 1
 
   mkdir -p /etc/portage/package.use/
   for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
@@ -117,7 +117,7 @@ sabayon_stage3_arm_rebuildall () {
 
   echo "Emerge @systemd && @world"
   # sysv-utils needed for set /sbin/init as systemd daemon
-  USE="-consolekit sysv-utils" emerge ${emerge_opts} @system @world || return 1
+  USE="-consolekit sysv-utils" emerge ${emerge_opts} @system @world -u || return 1
 
   echo "Cleaning packages:\n${PACKAGES2CLEAN}"
   emerge -C ${PACKAGES2CLEAN} || return 1
@@ -134,7 +134,7 @@ sabayon_stage3_arm_rebuildall () {
   # >=dev-libs/openssl-1.0.2l -bindist
   # For this is needed force rebuild of openssh!
   # TODO: if set useflag in package.use directory
-  USE="-bindist" emerge -j layman openssh --autounmask-keep-masks || return 1
+  USE="-bindist" emerge -j layman --autounmask-keep-masks || return 1
 
   echo "Depclean..."
   emerge --depclean

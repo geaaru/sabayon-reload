@@ -5,17 +5,22 @@
 
 - name: "{{ current_build }}: Create LXD image"
   vars:
-    sab_lxd_imagebuilder_opts: "{{ sab_lxd_imagebuilder_opts | default('') }}"
+    sab_lxd_imagebuilder_opts: "{{ lxd_imagebuilder_opts | default('') }}"
+    sab_lxd_imagebuilder: "{{ lxd_imagebuilder | default('sabayon-lxd-imagebuilder') }}"
   environment:
-    LXD_TARGET: "{{ lxd_target_server }}:"
-    OS: "{{ lxd_os_image }}"
-    DISTRO: "{{ lxd_distro_image }}"
-    RELEASE: "{{ lxd_release_image }}"
-    UNPRIVILEGED: "{{ lxd_unprivileged_image }}"
-    IMAGE_ALIAS: "{{ lxd_image_alias }}"
+    LXD_TARGET: "{{ lxd_target_server | default('') }}"
+    OS: "{{ lxd_os_image | default('sabayon') }}"
+    DISTRO: "{{ lxd_distro_image | default('Sabayon') }}"
+    RELEASE: "{{ lxd_release_image | default('daily') }}"
+    UNPRIVILEGED: "{{ lxd_unprivileged_image | default('') }}"
+    UNPRIVILEGED_FUNCTIONS: "{{ lxd_unpriv_funcs | default('') }}"
+    IMAGE_ALIAS: "{{ lxd_image_alias | default('') }}"
+    IMAGE_DESCR: "{{ lxd_image_descr | default('') }}"
     PULL_SKIP: "{{ lxd_skip_pull }}"
+  become: true
+  become_user: root
   command: >
-    sabayon-lxd-imagebuilder
+    {{ sab_lxd_imagebuilder }}
     --stagingdir {{ staging_dir}}
     --image {{ docker_image_name }}
     --import

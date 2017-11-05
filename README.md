@@ -145,7 +145,7 @@ playbooks to convert docker images of different tecnologies. Currently, it is su
 For test docker image on LXD images (or with same tags for test customized test):
 
 ```bash
-  $# ansible-playbook lxd.yml
+  $# ansible-playbook lxd.yml -K
 ```
 
-This playbook create also LXD images related to every steps on configured LXD server.
+This playbook create also LXD images related to every steps on configured LXD server and require root permission (or sudo password with -K option).
