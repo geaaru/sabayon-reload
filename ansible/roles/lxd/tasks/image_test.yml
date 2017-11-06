@@ -38,6 +38,8 @@
         state: stopped
 
     - name: "{{ current_build }}: Delete container"
+      tags:
+        - skip_del_container
       lxd_container:
         name: "{{ lxd_container_name }}"
         state: absent

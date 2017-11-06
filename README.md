@@ -143,9 +143,20 @@ To permit a continuos delivery of the images and verify that all works fine ther
 playbooks to convert docker images of different tecnologies. Currently, it is supported LXD.
 
 For test docker image on LXD images (or with same tags for test customized test):
-
+²
 ```bash
   $# ansible-playbook lxd.yml -K
 ```
 
 This playbook create also LXD images related to every steps on configured LXD server and require root permission (or sudo password with -K option).
+
+### Create a fresh container from Docker Image
+
+It is possible use playbook to simplify creation of a container with last image produced with this command:
+
+```bash
+  $# ansible-playbook lxd.yml -K --tags sabayon_spinbase --skip-tags skip_del_container -e container_name="my-container"
+```
+
+This create a new container with name "my-container" from sabayon_spinbase image.
+
