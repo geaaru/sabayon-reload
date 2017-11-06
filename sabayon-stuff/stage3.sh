@@ -100,21 +100,32 @@ sabayon_stage3_arm_rebuildall () {
 
   local i=0
   local emerge_opts="-j1 --quiet-build --newuse --deep --with-bdeps=y"
-#  local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
-#  local packages_use=(
-#    "sys-apps/util-linux -systemd -build -udev"
-#  )
+  local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
+  local packages_use=(
+    "sys-apps/util-linux -systemd -build -udev"
+  )
 
   sabayon_init_portage || return 1
 
   echo "Unmerge eudev not compliant with systemd (default package on latest Gentoo image)"
   emerge -C eudev virtual/udev sys-apps/openrc \
+    virtual/perl-ExtUtils-ParseXS dev-perl/XML-Parser \
+    virtual/perl-CPAN-Meta \
+    perl-core/File-Temp virtual/perl-CPAN-Meta-YAML \
+    virtual/perl-ExtUtils-Install \
+    virtual/perl-File-Temp virtual/perl-Test-Harness \
+    virtual/perl-Getopt-Long virtual/perl-Text-ParseWords \
+    virtual/perl-ExtUtils-Manifest virtual/perl-ExtUtils-CBuilder \
+    sys-apps/texinfo virtual/perl-Module-Metadata \
+    virtual/perl-Parse-CPAN-Meta virtual/perl-Perl-OSType \
+    dev-perl/TermReadKey virtual/perl-JSON-PP \
+    virtual/perl-File-Spec irtual/perl-Perl-OSType \
     app-eselect/eselect-python virtual/perl-CPAN-Meta || return 1
 
   mkdir -p /etc/portage/package.use/
-#  for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
-#    echo ${packages_use[${i}]} >> ${ufile}
-#  done
+  for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
+    echo ${packages_use[${i}]} >> ${ufile}
+  done
 
   echo "Emerge @systemd && @world"
   # sysv-utils needed for set /sbin/init as systemd daemon
