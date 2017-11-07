@@ -204,7 +204,8 @@ sabayon_add_profile4target () {
   local profile_name=${3:-${GENTOO_PROFILE_NAME}}
   local eapi=${4:-5}
 
-  local profile_dir="${PORTDIR}/profiles/default/linux/${arch}/${GENTOO_PROFILE_VERSION}${profile_name}"
+  local profile_prefix="${PORTDIR}/profiles/default/linux/${arch}/${GENTOO_PROFILE_VERSION}"
+  local profile_dir="${profile_prefix}${profile_name}"
   local profile_desc="default/linux/${arch}/${GENTOO_PROFILE_VERSION}${profile_name}"
   local target_path="${PORTDIR}/profiles/targets/${target}"
 
@@ -219,8 +220,9 @@ sabayon_add_profile4target () {
 
     echo ${eapi} > eapi
     local target_relpath=$(realpath --relative-to=${profile_dir} ${target_path})
+    local parent_path=$(realpath --relative-to=${profile_dir} ${profile_prefix})
 
-    echo "..
+    echo "${parent_path}
 ${target_relpath}"   > parent
 
     cd ${pwd_dir}
