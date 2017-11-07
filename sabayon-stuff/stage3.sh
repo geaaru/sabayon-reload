@@ -77,7 +77,7 @@ sabayon_stage3_rebuildall () {
   # >=dev-libs/openssl-1.0.2l -bindist
   # For this is needed force rebuild of openssh!
   # TODO: if set useflag in package.use directory
-  USE="-bindist" emerge -j layman openssh --autounmask-keep-masks || return 1
+  USE="-bindist" emerge -j --quiet-build layman --autounmask-keep-masks || return 1
 
   echo "Depclean..."
   emerge --depclean
@@ -133,10 +133,7 @@ sabayon_stage3_arm_rebuildall () {
   USE="sysv-utils" emerge ${emerge_opts} @system @world || return 1
 
   # This fix bug with /etc/init.d/functions.sh
-  emerge sys-devel/gcc-config sys-apps/gentoo-functions ${emerge_opts} || return 1
-
-  echo "Cleaning packages:\n${PACKAGES2CLEAN}"
-  emerge -C ${PACKAGES2CLEAN} || return 1
+  emerge sys-devel/gcc-config sys-apps/gentoo-functions ${emerge_opts} -u || return 1
 
   echo "Installing layman package.."
   # The following USE changes are necessary to proceed:
@@ -150,7 +147,10 @@ sabayon_stage3_arm_rebuildall () {
   # >=dev-libs/openssl-1.0.2l -bindist
   # For this is needed force rebuild of openssh!
   # TODO: if set useflag in package.use directory
-  USE="-bindist" emerge -j layman vim --autounmask-keep-masks || return 1
+  USE="-bindist" emerge --quiet-build layman vim openssh --autounmask-keep-masks || return 1
+
+  echo "Cleaning packages:\n${PACKAGES2CLEAN[@]}"
+  emerge -C ${PACKAGES2CLEAN[@]} || return 1
 
   echo "Depclean..."
   emerge --depclean
@@ -163,7 +163,6 @@ sabayon_stage3_arm_rebuildall () {
   rm -rf ${PORTDIR}/distfiles/*
 
   return 0
-
 }
 
 case $1 in
