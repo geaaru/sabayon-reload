@@ -2,7 +2,7 @@
 # Author:  Geaaru, geaaru@gmail.com
 # Description: Script for build stage3-sabayon-armv7a_hardfp image
 
-- name: "Stage3 Sabayon Systemd ARMv7a"
+- name: "Stage3 Sabayon Systemd ARMv7a-hfp"
   vars:
     current_build: "stage3-sabayon-armv7a_hardfp"
     current_builddir: "{{ builder_rootdir }}/stage3-sabayon-amd64"
@@ -20,6 +20,10 @@
         name: commons
         tasks_from: prepare_ctx
 
+    - name: "{{ current_build }}: Copy QEMU ARM binary"
+      command: cp /usr/bin/qemu-arm {{ current_builddir }}
+      when: for_arm and qemu_is_needed
+
     - name: "{{ current_build }}: Create image {{ docker_image_name }}"
       command: >
         docker build -t {{ docker_image_name }}
@@ -35,3 +39,8 @@
 
     - name: "{{ current_build }}: Build result"
       debug: var=sabayon_state3_build.stdout_lines
+
+    - name: "{{ current_build }}: Remove QEMU ARM binary"
+      command: rm {{ current_builddir }}/qemu-arm
+      when: for_arm and qemu_is_needed
+      ignore_errors: True

@@ -98,7 +98,7 @@
             - arm7_sabayon_stage3
           include_role:
             name: build
-            tasks_from: sabayon_stage3
+            tasks_from: arm7_sabayon_stage3
 
 #        - name: Build Sabayon Base
 #          include_role:

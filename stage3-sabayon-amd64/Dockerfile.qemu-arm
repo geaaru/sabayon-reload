@@ -18,6 +18,8 @@ RUN chmod a+x /sabayon-stuff/sabayon_stage3.sh
 # Add latest portage
 ADD ./portage-latest.tar.xz /usr
 
+ADD qemu-arm /usr/bin/qemu-arm
+
 # Set GENTOO_SKIP_SYNC VARIABLE
 ARG GENTOO_SKIP_SYNC=0
 ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
