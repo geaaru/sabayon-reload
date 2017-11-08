@@ -4,8 +4,8 @@
 . $(dirname $(readlink -f $BASH_SOURCE))/commons.sh
 
 SABAYON_STAGE3_PACKAGE_KEYWORDS=(
-  "app-admin/equo ~amd64"
-  "sys-apps/entropy ~amd64"
+  "app-admin/equo ~${SABAYON_ARCH}"
+  "sys-apps/entropy ~${SABAYON_ARCH}"
 )
 SABAYON_STAGE3_PACKAGE_USE=(
   "dev-lang/python sqlite"
@@ -117,11 +117,18 @@ sabayon_stage3_phase1 () {
 
 sabayon_stage3_phase2 () {
 
+  local dir=""
   local reposdir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
   sabayon_configure_portage || return 1
 
   # Configure repos
-  cd ${reposdir}/conf/intel/portage
+  if [ "${SABAYON_ARCH}" == "arm" ] ; then
+    dir=${reposdir}/conf/armhfp/portage
+  else
+    dir=${reposdir}/conf/intel/portage
+  fi
+
+  cd $dir
 
   git checkout -b myconf || return 1
 

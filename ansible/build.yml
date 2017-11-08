@@ -84,17 +84,21 @@
 
         - name: Build Gentoo Stage3
           vars:
-            docker_build_opts: '--build-arg GENTOO_PROFILE_NAME=/armv7a'
+            docker_build_opts: '--build-arg GENTOO_PROFILE_NAME=/armv7a/systemd'
           tags:
             - arm7_gentoo_stage3
           include_role:
             name: build
             tasks_from: arm7_gentoo_stage3
 
-#        - name: Build Sabayon Stage3
-#          include_role:
-#            name: build
-#            tasks_from: sabayon_stage3
+        - name: Build Sabayon Stage3
+          vars:
+            docker_build_opts: '--build-arg GENTOO_PROFILE_NAME=/armv7a/systemd'
+          tags:
+            - arm7_sabayon_stage3
+          include_role:
+            name: build
+            tasks_from: sabayon_stage3
 
 #        - name: Build Sabayon Base
 #          include_role:
