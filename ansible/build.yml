@@ -93,7 +93,9 @@
 
         - name: Build Sabayon Stage3
           vars:
-            docker_build_opts: '--build-arg GENTOO_PROFILE_NAME=/armv7a/systemd'
+            docker_build_opts: >
+              --build-arg GENTOO_PROFILE_NAME=/armv7a/systemd
+              --build-arg TARGET_ARCH={{ current_arch }}
           tags:
             - arm7_sabayon_stage3
           include_role:

@@ -1,7 +1,7 @@
 ARG USER=geaaru
 # Set arch
-ARG SABAYON_ARCH=amd64
-FROM ${USER}/stage3-gentoo-systemd-${SABAYON_ARCH}
+ARG TARGET_ARCH=amd64
+FROM ${USER}/stage3-gentoo-systemd-${TARGET_ARCH}
 
 MAINTAINER geaaru <geaaru@gmail.com>
 
@@ -9,6 +9,7 @@ MAINTAINER geaaru <geaaru@gmail.com>
 #ENV LC_ALL=en_US.UTF-8
 #ENV TERM=linux
 
+ARG SABAYON_ARCH=amd64
 ENV SABAYON_ARCH ${SABAYON_ARCH}
 
 # Add sabayon-stuff files
@@ -21,6 +22,10 @@ ADD ./portage-latest.tar.xz /usr
 # Set GENTOO_SKIP_SYNC VARIABLE
 ARG GENTOO_SKIP_SYNC=0
 ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
+
+# Set profile
+ARG GENTOO_PROFILE_NAME=/systemd
+ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
 
 ARG CACHEBUST=1
 # Prepare env for equo emerge and equo rescue
