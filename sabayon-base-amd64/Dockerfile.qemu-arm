@@ -5,6 +5,8 @@ FROM ${USER}/stage3-sabayon-${TARGET_ARCH}
 
 MAINTAINER geaaru <geaaru@gmail.com>
 
+ADD qemu-arm /usr/bin/qemu-arm
+
 ARG SABAYON_ARCH=amd64
 ENV SABAYON_ARCH ${SABAYON_ARCH}
 

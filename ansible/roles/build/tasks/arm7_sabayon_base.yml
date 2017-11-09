@@ -1,0 +1,46 @@
+---
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for build sabayon-base-armv7a image
+
+- name: "Sabayon Base ARMv7A"
+  vars:
+    current_build: "sabayon-base-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/sabayon-base-amd64"
+    current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+    docker_image_name: "{{ docker_user }}/sabayon-base-{{ current_arch }}"
+  block:
+
+    - name: "{{ current_build }}: Check for updated portage tarball"
+      include_role:
+        name: commons
+        tasks_from: download_portage
+
+    - name: "{{ current_build }}: Prepare build context"
+      include_role:
+        name: commons
+        tasks_from: prepare_ctx
+
+    - name: "{{ current_build }}: Copy QEMU ARM binary"
+      command: cp /usr/bin/qemu-arm {{ current_builddir }}
+      when: for_arm and qemu_is_needed
+
+    - name: "{{ current_build }}: Create image {{ docker_image_name }}"
+      command: >
+        docker build -t {{ docker_image_name }}
+        --build-arg USER={{ docker_user }}
+        --build-arg CACHEBUST={{ current_date }}
+        --build-arg SABAYON_ARCH={{ sabayon_arch }}
+        {{ docker_build_opts }}
+        .
+      args:
+        chdir: "{{ current_builddir }}"
+      register: sabayon_base_build
+
+    - name: "{{ current_build }}: Build result"
+      debug: var=sabayon_base_build.stdout_lines
+
+    - name: "{{ current_build }}: Remove QEMU ARM binary"
+      command: rm {{ current_builddir }}/qemu-arm
+      when: for_arm and qemu_is_needed
+      ignore_errors: True
+
