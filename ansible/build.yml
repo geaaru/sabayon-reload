@@ -92,12 +92,11 @@
             tasks_from: arm7_gentoo_stage3
 
         - name: Block for arm7a
-          block:
           vars:
             docker_build_opts: >
               --build-arg GENTOO_PROFILE_NAME=/armv7a/systemd
               --build-arg TARGET_ARCH={{ current_arch }}
-
+          block:
             - name: Build Sabayon Stage3
               tags:
                 - arm7_sabayon_stage3

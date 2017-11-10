@@ -75,31 +75,31 @@ gentoo-stage3
 Under ansible directory, for build step 1:
 
 ```bash
-  $# ansible-playbook --tags amd64,amd64_gentoo_stage3 build.yml
+  $# ansible-playbook --tags amd64_gentoo_stage3 build.yml
 ```
 
 For build step 2:
 
 ```bash
-  $# ansible-playbook --tags amd64,amd64_sabayon_stage3 build.yml
+  $# ansible-playbook --tags amd64_sabayon_stage3 build.yml
 ```
 
 For build step 3:
 
 ```bash
-  $# ansible-playbook --tags amd64,amd64_sabayon_base build.yml
+  $# ansible-playbook --tags amd64_sabayon_base build.yml
 ```
 
 For build step 4:
 
 ```bash
-  $# ansible-playbook --tags amd64,amd64_sabayon_spinbase build.yml
+  $# ansible-playbook --tags amd64_sabayon_spinbase build.yml
 ```
 
 For build step 5:
 
 ```bash
-  $# ansible-playbook --tags amd64,amd64_sabayon_builder build.yml
+  $# ansible-playbook --tags amd64_sabayon_builder build.yml
 ```
 
 For build all AMD64 docker images:
@@ -155,8 +155,14 @@ This playbook create also LXD images related to every steps on configured LXD se
 It is possible use playbook to simplify creation of a container with last image produced with this command:
 
 ```bash
-  $# ansible-playbook lxd.yml -K --tags sabayon_spinbase --skip-tags skip_del_container -e container_name="my-container"
+  $# ansible-playbook lxd.yml -K --tags amd64_sabayon_spinbase --skip-tags skip_del_container -e container_name="my-container"
 ```
 
 This create a new container with name "my-container" from sabayon_spinbase image.
+
+For list of all tags:
+
+```
+  $# ansible-playbook lxd.yml --list-tags
+```
 
