@@ -158,6 +158,8 @@ sabayon_stage3_arm_rebuildall () {
   # Set locale for testing phase
   sabayon_set_locale_conf || return 1
 
+  echo -5 | etc-update
+
   echo "Removing packages directory..."
   rm -rf ${PORTDIR}/packages
   rm -rf ${PORTDIR}/distfiles/*
