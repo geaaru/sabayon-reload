@@ -14,9 +14,6 @@ SABAYON_STAGE3_PACKAGE_USE=(
 SABAYON_STAGE3_KEYWORDS_FILE="${SABAYON_STAGE3_KEYWORDS_FILE:-00-sabayon.package.keywords}"
 SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-00-sabayon.package.use}"
 SABAYON_EQUO_DIR="/var/lib/entropy/client/database/"
-SABAYON_PORTAGE_CONF_REPOS=${SABAYON_PORTAGE_CONF_REPOS:-https://github.com/Sabayon/build.git}
-SABAYON_PORTAGE_CONF_INSTALLDIR="${SABAYON_PORTAGE_CONF_INSTALLDIR:-/opt}"
-SABAYON_PORTAGE_CONF_INSTALLNAME="${SABAYON_PORTAGE_CONF_INSTALLNAME:-sabayon-build}"
 
 sabayon_stage3_keywords () {
 
@@ -119,6 +116,7 @@ sabayon_stage3_phase2 () {
 
   local dir=""
   local reposdir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
+  # sabayon_configure_portage || return 1
   sabayon_configure_portage || return 1
 
   # Configure repos

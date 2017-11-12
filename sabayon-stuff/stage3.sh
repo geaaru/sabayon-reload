@@ -77,7 +77,7 @@ sabayon_stage3_rebuildall () {
   # >=dev-libs/openssl-1.0.2l -bindist
   # For this is needed force rebuild of openssh!
   # TODO: if set useflag in package.use directory
-  USE="-bindist" emerge -j --quiet-build layman --autounmask-keep-masks || return 1
+  USE="-bindist" emerge -j --quiet-build layman openssh --autounmask-keep-masks || return 1
 
   echo "Depclean..."
   emerge --depclean

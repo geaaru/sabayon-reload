@@ -8,6 +8,9 @@ GENTOO_PROFILE_NAME="${GENTOO_PROFILE_NAME:-/systemd}"
 PORTDIR=${PORTDIR:-/usr/portage}
 PORTAGE_LATEST_PATH=${PORTAGE_LATEST_PATH:-/portage-latest.tar.xz}
 SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
+SABAYON_PORTAGE_CONF_REPOS=${SABAYON_PORTAGE_CONF_REPOS:-https://github.com/Sabayon/build.git}
+SABAYON_PORTAGE_CONF_INSTALLDIR="${SABAYON_PORTAGE_CONF_INSTALLDIR:-/opt}"
+SABAYON_PORTAGE_CONF_INSTALLNAME="${SABAYON_PORTAGE_CONF_INSTALLNAME:-sabayon-build}"
 
 sabayon_set_best_mirrors () {
 
@@ -58,12 +61,24 @@ sabayon_check_etc_portage () {
     mkdir -p /etc/portage/package.use
   fi
 
+  if [[ ! -d /etc/portage/package.mask ]] ; then
+    mkdir -p /etc/portage/package.mask
+  fi
+
+  if [[ ! -d /etc/portage/package.unmask ]] ; then
+    mkdir -p /etc/portage/package.unmask
+  fi
+
+  if [[ ! -d /etc/portage/package.keywords ]] ; then
+    mkdir -p /etc/portage/package.keywords
+  fi
+
   return 0
 }
 
 sabayon_set_locale_conf () {
 
-  local lang="${1:-en_US.UTF-8}"
+  local lang="${1:-en_US.utf8}"
 
   for f in /etc/env.d/02locale /etc/locale.conf; do
     echo "LANG=${lang}" > "${f}"
@@ -76,7 +91,7 @@ sabayon_set_locale_conf () {
 
 sabayon_set_locate () {
 
-  echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen || return 1
+  echo 'en_US.utf8 UTF-8' > /etc/locale.gen || return 1
 
   /usr/sbin/locale-gen
 
@@ -199,7 +214,8 @@ sabayon_set_pyver () {
 
 sabayon_add_profile4target () {
 
-  local target="$1"
+  # Target is a list of targets to insert as dependency on parent file
+  local targets="$1"
   local arch=${2:-${SABAYON_ARCH}}
   local profile_name=${3:-${GENTOO_PROFILE_NAME}}
   local eapi=${4:-5}
@@ -207,9 +223,7 @@ sabayon_add_profile4target () {
   local profile_prefix="${PORTDIR}/profiles/default/linux/${arch}/${GENTOO_PROFILE_VERSION}"
   local profile_dir="${profile_prefix}${profile_name}"
   local profile_desc="default/linux/${arch}/${GENTOO_PROFILE_VERSION}${profile_name}"
-  local target_path="${PORTDIR}/profiles/targets/${target}"
 
-  echo "Adding profile ${profile_name} for arch ${arch} with target ${target}..."
   echo "Profile Path: ${profile_dir}"
 
   local pwd_dir=$(pwd)
@@ -219,11 +233,20 @@ sabayon_add_profile4target () {
     cd ${profile_dir}
 
     echo ${eapi} > eapi
-    local target_relpath=$(realpath --relative-to=${profile_dir} ${target_path})
     local parent_path=$(realpath --relative-to=${profile_dir} ${profile_prefix})
 
-    echo "${parent_path}
-${target_relpath}"   > parent
+    echo "${parent_path}" > parent
+
+    local target_path=""
+    local target_realpath=""
+    for target in ${targets} ; do
+      echo "For profile ${profile_name} for arch ${arch} connect target ${target}..."
+
+      target_path="${PORTDIR}/profiles/targets/${target}"
+      target_relpath=$(realpath --relative-to=${profile_dir} ${target_path})
+
+      echo "${target_relpath}"   >> parent
+    done
 
     cd ${pwd_dir}
 
@@ -283,23 +306,93 @@ sabayon_init_portage () {
   return 0
 }
 
+sabayon_install_build () {
+
+  local builddir=${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}
+
+  [ -z "${PORTDIR}" ] && return 1
+  [ -z "${SABAYON_ARCH}" ] && return 1
+  [ -z "${SABAYON_PORTAGE_CONF_INSTALLDIR}" ] && return 1
+  [ -z "${SABAYON_PORTAGE_CONF_INSTALLNAME}" ] && return 1
+
+  if [  -d "${builddir}" ] ; then
+
+    pushd ${builddir}
+
+    git pull -ff
+
+  else
+    pushd "${SABAYON_PORTAGE_CONF_INSTALLDIR}"
+
+    git clone ${SABAYON_PORTAGE_CONF_REPOS} ${SABAYON_PORTAGE_CONF_INSTALLNAME}
+
+    # Configure repos
+    git config --global user.name "root" || return 1
+    git config --global user.email "root@localhost" || return 1
+
+    # Temporary for use ${SABAYON_ARCH} variable
+    ln -s ${builddir}/conf/intel ${builddir}/conf/amd64 || return 1
+  fi
+
+  popd
+
+  return 0
+}
+
+sabayon_create_targets () {
+
+  local target_name="${1:-sabayon/${SABAYON_ARCH}}"
+  local eapi=${2:-5}
+  local targetdir="${PORTDIR}/profiles/targets/${target_name}"
+  local buildir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
+  local build_arch="${buildir}/conf/${SABAYON_ARCH}/portage"
+
+  sabayon_install_build || return 1
+
+  if [ "${SABAYON_ARCH}" == "amd64" ] ; then
+
+    if [ ! -d ${targetdir} ] ; then
+
+      mkdir -p ${targetdir} || return 1
+
+    fi
+
+    pushd ${targetdir}
+
+    echo ${eapi} > eapi
+
+    ln -s ${build_arch}/make.conf.${SABAYON_ARCH} make.defaults
+    ln -s ${build_arch}/profile/package.use.force/00-sabayon.package.use.force package.use.force
+    ln -s ${build_arch}/package.use/00-sabayon.package.use package.use
+    ln -s ${build_arch}/package.keywords/00-sabayon.package.keywords package.keywords
+    ln -s ${build_arch}/package.env.${SABAYON_ARCH} package.env
+    ln -s ${build_arch}/profile/virtuals .
+
+    # Currently targets/profiles doesn't support syntax with ::repos.
+    # I will create a link on /etc/portage
+    ln -s ${build_arch}/package.mask/00-sabayon.package.mask /etc/portage/package.use/00-sabayon.package.mask
+    ln -s ${build_arch}/profile/package.use.mask/00-sabayon.mask /etc/portage/package.use.mask/00-sabayon.mask
+    ln -s ${build_arch}/package.unmask/00-sabayon.package.unmask /etc/portage/package.unmask/00-sabayon.package.unmask
+    ln -s ${build_arch}/package.license /etc/portage/package.license
+
+    cp -r ${build_arch}/env .
+
+    popd
+
+  else
+    echo "ARCH ${SABAYON_ARCH} not yet supported."
+    return 1
+  fi
+
+  return 0
+}
+
 sabayon_configure_portage () {
 
   local init_etc=${1:-0}
   local reposdir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
 
-  [ -z "${SABAYON_PORTAGE_CONF_REPOS}" ] && return 1
-  [ -z "${SABAYON_ARCH}" ] && return 1
-  [ -z "${SABAYON_PORTAGE_CONF_INSTALLDIR}" ] && return 1
-  [ -z "${SABAYON_PORTAGE_CONF_INSTALLNAME}" ] && return 1
-
-  cd "${SABAYON_PORTAGE_CONF_INSTALLDIR}" || return 1
-
-  git clone ${SABAYON_PORTAGE_CONF_REPOS} ${SABAYON_PORTAGE_CONF_INSTALLNAME}
-
-  # Configure repos
-  git config --global user.name "root" || return 1
-  git config --global user.email "root@localhost" || return 1
+  sabayon_install_build || return 1
 
   # TODO: check if correct maintains intel configuration
 
