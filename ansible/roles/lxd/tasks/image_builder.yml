@@ -3,6 +3,14 @@
 # Author: Geaaru, geaaru@gmail.com
 # Description: Role for create lxd image from docker
 
+- name: "{{ current_build }}: Clean staging dir rootfs"
+  become: true
+  become_user: root
+  file:
+    path: "{{ staging_dir }}/rootfs"
+    state: absent
+  ignore_errors: yes
+
 - name: "{{ current_build }}: Create LXD image"
   vars:
     sab_lxd_imagebuilder_opts: "{{ lxd_imagebuilder_opts | default('') }}"

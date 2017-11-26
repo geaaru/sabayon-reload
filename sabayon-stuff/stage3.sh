@@ -119,7 +119,7 @@ sabayon_stage3_arm_rebuildall () {
     sys-apps/texinfo virtual/perl-Module-Metadata \
     virtual/perl-Parse-CPAN-Meta virtual/perl-Perl-OSType \
     dev-perl/TermReadKey virtual/perl-JSON-PP \
-    virtual/perl-File-Spec irtual/perl-Perl-OSType \
+    virtual/perl-File-Spec virtual/perl-Perl-OSType \
     app-eselect/eselect-python virtual/perl-CPAN-Meta || return 1
 
   mkdir -p /etc/portage/package.use/

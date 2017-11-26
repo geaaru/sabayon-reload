@@ -11,6 +11,8 @@ SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
 SABAYON_PORTAGE_CONF_REPOS=${SABAYON_PORTAGE_CONF_REPOS:-https://github.com/Sabayon/build.git}
 SABAYON_PORTAGE_CONF_INSTALLDIR="${SABAYON_PORTAGE_CONF_INSTALLDIR:-/opt}"
 SABAYON_PORTAGE_CONF_INSTALLNAME="${SABAYON_PORTAGE_CONF_INSTALLNAME:-sabayon-build}"
+SABAYON_PROFILE_TARGETS="${GENTOO_PROFILE_NAME:-/systemd}"
+#SABAYON_PROFILE_TARGETS="/systemd /sabayon/amd64"
 
 sabayon_set_best_mirrors () {
 
@@ -240,6 +242,13 @@ sabayon_add_profile4target () {
     local target_path=""
     local target_realpath=""
     for target in ${targets} ; do
+
+      # TODO: Temporary workaround to test feature and compilation with sabayon
+      # targets.
+      if [[ ${target} == *sabayon* ]] ; then
+        sabayon_create_targets ${target} || return 1
+      fi
+
       echo "For profile ${profile_name} for arch ${arch} connect target ${target}..."
 
       target_path="${PORTDIR}/profiles/targets/${target}"
@@ -250,33 +259,40 @@ sabayon_add_profile4target () {
 
     cd ${pwd_dir}
 
-    local i=0
-    local word=""
-    local found=false
-    local inserted=false
-    local profiles_desc=""
-    local new_profile="${arch}           ${profile_desc}           dev"
+    # Check if required add entry on profiles.desc
+    add_profile_desc=$(cat ${PORTDIR}/profiles/profiles.desc  | grep "${profile_desc}"  | wc -l)
 
-    while read line ; do
-      word=$(echo $line | cut -d' ' -f1)
+    if [ ${add_profile_desc} -eq 0 ] ; then
 
-      if [ ${inserted} == false ] ; then
-        if [ "$word" = "${arch}" ] ; then
-          [ ${found} == false ] && found=true
-        else
-          if [ ${found} == true ] ; then
-            profiles_desc="${profiles_desc}\n${new_profile}"
-            inserted=true
+      local i=0
+      local word=""
+      local found=false
+      local inserted=false
+      local profiles_desc=""
+      local new_profile="${arch}           ${profile_desc}           dev"
+
+      while read line ; do
+        word=$(echo $line | cut -d' ' -f1)
+
+        if [ ${inserted} == false ] ; then
+          if [ "$word" = "${arch}" ] ; then
+            [ ${found} == false ] && found=true
+          else
+            if [ ${found} == true ] ; then
+              profiles_desc="${profiles_desc}\n${new_profile}"
+              inserted=true
+            fi
           fi
         fi
-      fi
 
-      profiles_desc="${profiles_desc}\n${line}"
+        profiles_desc="${profiles_desc}\n${line}"
 
-    done < <(cat ${PORTDIR}/profiles/profiles.desc)
+      done < <(cat ${PORTDIR}/profiles/profiles.desc)
 
-    # Add profiles to list
-    echo -en "${profiles_desc}\n" > ${PORTDIR}/profiles/profiles.desc
+      # Add profiles to list
+      echo -en "${profiles_desc}\n" > ${PORTDIR}/profiles/profiles.desc
+
+    fi
 
   else
     echo "Profile ${profile_desc} is already present."
@@ -297,7 +313,7 @@ sabayon_init_portage () {
   echo "Remove openrc from base packages"
   sed -e 's/*sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
 
-  sabayon_add_profile4target "/systemd" || return 1
+  sabayon_add_profile4target "${SABAYON_PROFILE_TARGETS}" || return 1
 
   sabayon_set_profile || return 1
 
@@ -343,6 +359,9 @@ sabayon_create_targets () {
 
   local target_name="${1:-sabayon/${SABAYON_ARCH}}"
   local eapi=${2:-5}
+
+  [ ${target_name:0:1} == "/" ] && target_name=${target_name:1:${#target_name}}
+
   local targetdir="${PORTDIR}/profiles/targets/${target_name}"
   local buildir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
   local build_arch="${buildir}/conf/${SABAYON_ARCH}/portage"
@@ -355,29 +374,65 @@ sabayon_create_targets () {
 
       mkdir -p ${targetdir} || return 1
 
+      pushd ${targetdir}
+
+      echo ${eapi} > eapi
+
+      ln -s ${build_arch}/make.conf.${SABAYON_ARCH} make.defaults
+
+      # TODO: Wait for merge of my pr
+      sed -i -e 's:source /var/lib.*::g' \
+        -e 's:^USE_PYTHON=.*:USE_PYTHON="2.7 3.5":g' \
+        ${build_arch}/make.conf.${SABAYON_ARCH}
+
+      ln -s ${build_arch}/profile/package.use.force/00-sabayon.package.use.force package.use.force
+      ln -s ${build_arch}/package.use/00-sabayon.package.use package.use
+      ln -s ${build_arch}/package.keywords/00-sabayon.package.keywords package.keywords
+
+      # TODO: To fix on upstream
+      # --- Invalid atom in /usr/portage/profiles/targets/sabayon/amd64/package.keywords: perl-core/*
+      # --- Invalid atom in /usr/portage/profiles/targets/sabayon/amd64/package.keywords: virtual/perl-*
+      sed -i -e 's:^perl-core/\* .*::g' \
+        -e 's:dev-lang/perl .*:dev-lang/perl ~amd64 ~x86:g' \
+        -e 's:^virtual/perl-\* .*::g' ${build_arch}/package.keywords/00-sabayon.package.keywords
+
+      ln -s ${build_arch}/package.env.${SABAYON_ARCH} package.env
+      ln -s ${build_arch}/profile/virtuals .
+
+      # Currently PMS specification (targets/profiles) doesn't support syntax with ::repos
+      # I will create a link on /etc/portage
+      ln -s ${build_arch}/package.mask/00-sabayon.package.mask \
+        /etc/portage/package.mask/00-sabayon.package.mask
+
+      [ ! -d /etc/portage/package.use.mask ] && \
+        mkdir -p /etc/portage/package.use.mask || return 1
+      ln -s ${build_arch}/profile/package.use.mask/00-sabayon.mask \
+        /etc/portage/package.use.mask/00-sabayon.mask
+
+      [ ! -d /etc/portage/package.unmask ] && \
+        mkdir -p /etc/portage/package.unmask || return 1
+      ln -s ${build_arch}/package.unmask/00-sabayon.package.unmask \
+        /etc/portage/package.unmask/00-sabayon.package.unmask
+      ln -s ${build_arch}/package.license /etc/portage/package.license
+
+      # TODO: Check if env must be moved to /etc/portage
+      cp -r ${build_arch}/env .
+
+      # Disable gentoo3 default CPU_FLAGS, USE, CFLAGS, CXXFLAGS
+      # from /etc/portage/make.conf
+      sed -i -e 's:^CFLAGS=:#CFLAGS=:g' \
+        -e 's:^CXXFLAGS=:#CXXFLAGS=:g' \
+        -e 's:^CPU_FLAGS_X86:#CPU_FLAGS_X86:g' \
+        -e 's:^USE=:#USE=:g' \
+        /etc/portage/make.conf
+
+      popd
+
+    else
+
+      echo "Target ${target_name} already present. Nothing to create."
+
     fi
-
-    pushd ${targetdir}
-
-    echo ${eapi} > eapi
-
-    ln -s ${build_arch}/make.conf.${SABAYON_ARCH} make.defaults
-    ln -s ${build_arch}/profile/package.use.force/00-sabayon.package.use.force package.use.force
-    ln -s ${build_arch}/package.use/00-sabayon.package.use package.use
-    ln -s ${build_arch}/package.keywords/00-sabayon.package.keywords package.keywords
-    ln -s ${build_arch}/package.env.${SABAYON_ARCH} package.env
-    ln -s ${build_arch}/profile/virtuals .
-
-    # Currently targets/profiles doesn't support syntax with ::repos.
-    # I will create a link on /etc/portage
-    ln -s ${build_arch}/package.mask/00-sabayon.package.mask /etc/portage/package.use/00-sabayon.package.mask
-    ln -s ${build_arch}/profile/package.use.mask/00-sabayon.mask /etc/portage/package.use.mask/00-sabayon.mask
-    ln -s ${build_arch}/package.unmask/00-sabayon.package.unmask /etc/portage/package.unmask/00-sabayon.package.unmask
-    ln -s ${build_arch}/package.license /etc/portage/package.license
-
-    cp -r ${build_arch}/env .
-
-    popd
 
   else
     echo "ARCH ${SABAYON_ARCH} not yet supported."
