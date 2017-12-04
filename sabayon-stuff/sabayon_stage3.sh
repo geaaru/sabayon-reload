@@ -14,6 +14,7 @@ SABAYON_STAGE3_PACKAGE_USE=(
 SABAYON_STAGE3_KEYWORDS_FILE="${SABAYON_STAGE3_KEYWORDS_FILE:-00-sabayon.package.keywords}"
 SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-00-sabayon.package.use}"
 SABAYON_EQUO_DIR="/var/lib/entropy/client/database/"
+SABAYON_REBUILD=${SABAYON_REBUILD:-0}
 
 sabayon_stage3_keywords () {
 
@@ -83,11 +84,20 @@ sabayon_stage3_init () {
 sabayon_stage3_init_equo () {
 
   local equodir=${SABAYON_EQUO_DIR}/${SABAYON_ARCH}
+  local size=""
 
   mkdir -p ${equodir} || return 1
   cd ${equodir}
 
   cat /sabayon-stuff/ext/equo.sql | sqlite3 equo.db || return 1
+
+  size=$(ls -l ${equodir}/equo.db  | cut -d' ' -f5)
+  if [ x"$size" == x"0" ] ; then
+    echo "Something go wrong on create equo.db."
+    return 1
+  fi
+
+  echo "Create equo.db database from schema correctly."
 
   return 0
 }
@@ -95,6 +105,7 @@ sabayon_stage3_init_equo () {
 sabayon_stage3_phase1_review () {
 
   local ufile="/etc/portage/package.use/${SABAYON_STAGE3_USE_FILE}"
+  local emerge_opts="-j --with-bdeps=y"
 
   # TODO: do clarification to gentoo team
   # Use PYTHON_* from make.defaults
@@ -120,9 +131,11 @@ sabayon_stage3_phase1_review () {
   # This permit compilation of gnome-keyring inside LXC/LXD containers
   # TODO: Setting of capabilities are been fixed on kernel >4.14
   echo "gnome-base/gnome-keyring -caps" >> ${ufile}
+  echo "sys-libs/pam -filecaps" >> ${ufile}
 
   emerge -C $(qlist -IC dev-perl/) $(qlist -IC virtual/perl) \
     $(qlist -IC perl-core/) \
+    app-crypt/pinentry \
     sys-apps/texinfo \
     app-eselect/eselect-python  || return 1
 
@@ -152,30 +165,36 @@ sys-devel/gcc::gentoo" >> /etc/portage/package.mask/00-sabayon.package.mask
 # 2017-11-26 Geaaru: temporary block
 >=sys-libs/readline-7.0_p3" >> /etc/portage/package.mask/00-tmp.package.mask
 
-  emerge $(qgrep -JN sys-libs/readline | cut -f1 -d":" | uniq | sed -e 's:^:=:g' ) -pv
+  emerge ${emerge_opts} dev-perl/XML-Parser \
+    $(qgrep -JN sys-libs/readline | cut -f1 -d":" | uniq | sed -e 's:^:=:g' ) || return 1
 
-  USE="-doc" emerge --newuse --deep --with-bdeps=y -j @system @world || return 1
+  # This fix bug with /etc/init.d/functions.sh
+  emerge sys-devel/gcc-config sys-apps/gentoo-functions -j -u || return 1
 
   # Retrieve current gcc
   local current_gcc=$(gcc-config -c)
   local current_gcc_version=$(echo $(gcc-config -c) | sed -e "s:$(uname -m)-pc-linux-gnu-::g")
 
   # TODO: fix downgrade of gcc
-  emerge sys-devel/base-gcc::sabayon-distro || return 1
+  emerge sys-devel/base-gcc::sabayon-distro --quiet-build || return 1
 
   local sabayon_gcc=$(gcc-config -c)
 
-  gcc-config $(current_gcc)
+  gcc-config ${current_gcc} || return 1
 
   . /etc/profile
 
   emerge sys-devel/gcc::sabayon-distro  --quiet-build || return 1
 
-  gcc-config $(sabayon_gcc)
+  gcc-config ${sabayon_gcc} || return 1
 
   . /etc/profile
 
-  emerge --unmerge =sys-devel/gcc-${current_gcc_version}::gentoo
+  emerge --unmerge =sys-devel/gcc-${current_gcc_version}::gentoo || return 1
+
+  USE="-doc" emerge --newuse --deep --with-bdeps=y -j @system @world || return 1
+
+  sabayon_stage3_phase1 || return 1
 
   return 0
 }
@@ -233,10 +252,16 @@ case $1 in
     sabayon_stage3_init
     ;;
   phase1)
-    sabayon_stage3_phase1
+    if [ ${SABAYON_REBUILD} -eq 0 ] ; then
+      sabayon_stage3_phase1
+    else
+      sabayon_stage3_phase1_review
+    fi
     ;;
   phase2)
-    sabayon_stage3_phase2
+    if [ ${SABAYON_REBUILD} -eq 0 ] ; then
+      sabayon_stage3_phase2
+    fi
     ;;
   *)
   echo "Use init|phase1|phase2"
