@@ -12,8 +12,26 @@ SABAYON_ARCH="${SABAYON_ARCH:-amd64}"
 SABAYON_PORTAGE_CONF_REPOS=${SABAYON_PORTAGE_CONF_REPOS:-https://github.com/Sabayon/build.git}
 SABAYON_PORTAGE_CONF_INSTALLDIR="${SABAYON_PORTAGE_CONF_INSTALLDIR:-/opt}"
 SABAYON_PORTAGE_CONF_INSTALLNAME="${SABAYON_PORTAGE_CONF_INSTALLNAME:-sabayon-build}"
-SABAYON_PROFILE_TARGETS="${GENTOO_PROFILE_NAME:-/systemd}"
+SABAYON_PROFILE_TARGETS="${SABAYON_PROFILE_TARGETS:-/systemd}"
 #SABAYON_PROFILE_TARGETS="/systemd /sabayon/amd64"
+
+sabayon_build_info () {
+
+  local profile=${1:-default/linux/${SABAYON_ARCH}/${GENTOO_PROFILE_VERSION}${GENTOO_PROFILE_NAME}}
+
+  echo "
+GENTOO_PROFILE_VERSION            = ${GENTOO_PROFILE_VERSION}
+GENTOO_PROFILE_NAME               = ${profile}
+GENTOO_SKIP_SYNC                  = ${GENTOO_SKIP_SYNC}
+SABAYON_PROFILE_TARGETS           = ${SABAYON_PROFILE_TARGETS}
+SABAYON_ARCH                      = ${SABAYON_ARCH}
+SABAYON_REBUILD                   = ${SABAYON_REBUILD}
+SABAYON_PORTAGE_CONF_REPOS        = ${SABAYON_PORTAGE_CONF_REPOS}
+SABAYON_PORTAGE_CONF_INSTALLDIR   = ${SABAYON_PORTAGE_CONF_INSTALLDIR}
+SABAYON_PORTAGE_CONF_INSTALLNAME  = ${SABAYON_PORTAGE_CONF_INSTALLNAME}
+"
+  return 0
+}
 
 sabayon_set_best_mirrors () {
 
@@ -97,6 +115,17 @@ sabayon_set_locate () {
   echo 'en_US.utf8 UTF-8' > /etc/locale.gen || return 1
 
   /usr/sbin/locale-gen
+
+  sabayon_load_locate || return 1
+
+  return 0
+}
+
+sabayon_load_locate () {
+
+  eselect locale set en_US.utf8 || return 1
+
+  . /etc/profile
 
   return 0
 }
@@ -314,6 +343,8 @@ sabayon_init_portage () {
   echo "Remove openrc from base packages"
   sed -e 's/*sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
 
+  sabayon_build_info
+
   sabayon_add_profile4target "${SABAYON_PROFILE_TARGETS}" || return 1
 
   sabayon_set_profile || return 1
@@ -397,7 +428,14 @@ sabayon_create_targets () {
         -e 's:dev-lang/perl .*:dev-lang/perl ~amd64 ~x86:g' \
         -e 's:^virtual/perl-\* .*::g' ${build_arch}/package.keywords/00-sabayon.package.keywords
 
-      ln -s ${build_arch}/package.env.${SABAYON_ARCH} package.env
+      # TODO: it seems thata PMS documentation doesn't describe use of package.env
+      #       file. I move for now this under /etc/portage/
+      [ ! -d /etc/portage/package.use.mask ] && \
+        mkdir -p /etc/portage/package.env || return 1
+      [ ! -e /etc/portage/package.env/00-sabayon.package.env ] && \
+        ln -s ${build_arch}/package.env.${SABAYON_ARCH} \
+          /etc/portage/package.env/00-sabayon.package.env || return 1
+
       ln -s ${build_arch}/profile/virtuals .
 
       # Currently PMS specification (targets/profiles) doesn't support syntax with ::repos
@@ -407,17 +445,21 @@ sabayon_create_targets () {
 
       [ ! -d /etc/portage/package.use.mask ] && \
         mkdir -p /etc/portage/package.use.mask || return 1
-      ln -s ${build_arch}/profile/package.use.mask/00-sabayon.mask \
-        /etc/portage/package.use.mask/00-sabayon.mask
+      [ ! -e /etc/portage/package.use.mask/00-sabayon.mask ] && \
+        ln -s ${build_arch}/profile/package.use.mask/00-sabayon.mask \
+          /etc/portage/package.use.mask/00-sabayon.mask
 
       [ ! -d /etc/portage/package.unmask ] && \
         mkdir -p /etc/portage/package.unmask || return 1
-      ln -s ${build_arch}/package.unmask/00-sabayon.package.unmask \
-        /etc/portage/package.unmask/00-sabayon.package.unmask
-      ln -s ${build_arch}/package.license /etc/portage/package.license
+      [ ! -e /etc/portage/package.unmask/00-sabayon.package.unmask ] && \
+        ln -s ${build_arch}/package.unmask/00-sabayon.package.unmask \
+          /etc/portage/package.unmask/00-sabayon.package.unmask
+      [ ! -e /etc/portage/package.license ] && \
+        ln -s ${build_arch}/package.license /etc/portage/package.license
 
       # TODO: Check if env must be moved to /etc/portage
-      cp -r ${build_arch}/env .
+      [ ! -e /etc/portage/package/env ] &&
+        ln -s ${build_arch}/env /etc/portage/env || return 1
 
       # Disable gentoo3 default CPU_FLAGS, USE, CFLAGS, CXXFLAGS
       # from /etc/portage/make.conf

@@ -8,9 +8,7 @@ MAINTAINER geaaru <geaaru@gmail.com>
 # Variables already set from gentoo steg3
 #ENV LC_ALL=en_US.UTF-8
 #ENV TERM=linux
-
-ARG SABAYON_ARCH=amd64
-ENV SABAYON_ARCH ${SABAYON_ARCH}
+#ENV SABAYON_ARCH=amd64
 
 # Add sabayon-stuff files
 ADD ./sabayon-stuff/ /sabayon-stuff
@@ -21,11 +19,17 @@ ADD ./portage-latest.tar.xz /usr
 
 # Set GENTOO_SKIP_SYNC VARIABLE
 ARG GENTOO_SKIP_SYNC=0
-ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
+ONBUILD ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
 
 # Set profile
 ARG GENTOO_PROFILE_NAME=/systemd
-ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
+ONBUILD ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
+
+ARG SABAYON_PROFILE_TARGETS=/systemd
+ONBUILD ENV SABAYON_PROFILE_TARGETS ${SABAYON_PROFILE_TARGETS}
+
+ARG SABAYON_REBUILD=0
+ONBUILD ENV SABAYON_REBUILD ${SABAYON_REBUILD}
 
 ARG CACHEBUST=1
 # Prepare env for equo emerge and equo rescue
@@ -37,7 +41,8 @@ RUN /sabayon-stuff/sabayon_stage3.sh phase1
 # Prepare portage environment for compilation
 RUN /sabayon-stuff/sabayon_stage3.sh phase2
 
-RUN rm -rf /sabayon-stuff /usr/portage/
+# Clean compilation stuff
+RUN /sabayon-stuff/sabayon_stage3.sh clean
 
 # Define default command.
 CMD ["/bin/bash"]

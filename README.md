@@ -61,13 +61,13 @@ Ansible tag for this image is *amd64,amd64_sabayon_builder*.
 
 ```
 
-gentoo-stage3
+gentoo-stage3 (systemd profile)
      |
      |
-     \--> sabayon-stage3 ------> sabayon-base  ----> sabayon-spinbase --> sabayon-builder
-                          \
-                           \
-                            ---> sabayon-base-reload ---> sabayon-rebuilder
+     +--> sabayon-stage3 ------> sabayon-base  ----> sabayon-spinbase --> sabayon-builder
+     |
+     \
+      \-> sabayon-stage3-reload -> sabayon-base-reload ---> sabayon-rebuilder
 ```
 
 ## Build Images

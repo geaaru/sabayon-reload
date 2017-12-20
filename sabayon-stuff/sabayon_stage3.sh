@@ -16,6 +16,97 @@ SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-00-sabayon.package.use}"
 SABAYON_EQUO_DIR="/var/lib/entropy/client/database/"
 SABAYON_REBUILD=${SABAYON_REBUILD:-0}
 
+SABAYON_EXTRA_MASK=(
+  # To fix on package.keywords
+  "# 2017-11-26 Geaaru: block installation of masked version"
+  ">=dev-lang/perl-5.26.9999"
+  ""
+
+  # It seems that this is not masked
+  "# 2017-11-26 Geaaru: Use sabayon version"
+  "app-crypt/pinentry::gentoo"
+  ""
+
+  "# 2017-11-26 Geaaru: Use sabayon version"
+  "sys-devel/gcc::gentoo"
+  ""
+
+  "# 2017-12-16 Geaaru: Mask cryptsetup for linking problems"
+  ">=sys-fs/cryptsetup-2.0.0"
+  ""
+
+  # Temporary block upgrade of readline
+  # sys-libs/readline:0
+  #
+  #(sys-libs/readline-7.0_p3:0/7::gentoo, ebuild scheduled for merge) conflicts with
+  #  sys-libs/readline:0/0= required by (sys-apps/gawk-4.1.4:0/0::gentoo, installed)
+  #                   ^^^^^
+  #  >=sys-libs/readline-6.3:0/0= required by (app-shells/bash-4.3_p48-r1:0/0::gentoo, installed)
+  "# 2017-11-26 Geaaru: temporary block"
+  ">=sys-libs/readline-7.0_p3"
+  ""
+)
+
+SABAYON_EXTRA_USE=(
+
+  # Avoid cycle dependency
+  "dev-libs/openssl -kerberos"
+  "app-crypt/mit-krb5 -openldap"
+  "sys-devel/clang -doc"
+  "sys-devel/llvm -doc"
+
+  # /var/tmp/portage/sys-devel/gcc-5.4.0-r3/work/gcc-5.4.0/libgo/runtime/proc.c:155:4: error: #error unknown case for SETCONTEXT_CLOBBERS_TLS
+  #  error unknown case for SETCONTEXT_CLOBBERS_TLS
+  #  ^
+  # /var/tmp/portage/sys-devel/gcc-5.4.0-r3/work/gcc-5.4.0/libgo/runtime/proc.c: In function ‘runtime_gogo’:
+  # /var/tmp/portage/sys-devel/gcc-5.4.0-r3/work/gcc-5.4.0/libgo/runtime/proc.c:249:2: warning: implicit declaration of function ‘fixcontext’ [-Wimplicit-function-declaration]
+  # fixcontext(&newg->context);
+  # ^
+  # /var/tmp/portage/sys-devel/gcc-5.4.0-r3/work/gcc-5.4.0/libgo/runtime/proc.c: In function ‘runtime_schedinit’:
+  # /var/tmp/portage/sys-devel/gcc-5.4.0-r3/work/gcc-5.4.0/libgo/runtime/proc.c:455:2: warning: implicit declaration of function ‘initcontext’ [-Wimplicit-function-declaration]
+  # initcontext();
+  #
+  # Go module it seems broken. I disable it for now.
+  "sys-devel/gcc -go"
+
+  # This is for cups useflag set as general...mmm... not so good
+  "x11-libs/gtk+ -cups"
+  "x11-libs/libxcb xkb"
+
+  # This permit compilation of gnome-keyring inside LXC/LXD containers
+  # TODO: Setting of capabilities are been fixed on kernel >4.14
+  "gnome-base/gnome-keyring -caps"
+  "sys-libs/pam -filecaps"
+
+)
+
+SABAYON_EXTRA_ENV=(
+
+  # Fix compilation of gobject-instrospection inside docker
+  # /proc/10702/cmdline: /bin/bash /usr/bin/ldd /var/tmp/portage/dev-libs/gobject-introspection-1.52.1/work/gobject-introspection-1.52.1/tmp-introspectwQePOR/GLib-2.0 
+  #
+  # * /var/tmp/portage/sys-apps/sandbox-2.10-r4/work/sandbox-2.10/libsandbox/trace.c:_do_ptrace():74: failure (Operation not permitted):
+  # * ISE:_do_ptrace: ptrace(PTRACE_TRACEME, ..., 0x0000000000000000, 0x0000000000000000): Operation not permitted
+  # /usr/lib64/libsandbox.so(+0xae02)[0x7f84cf83ae02]
+  # /usr/lib64/libsandbox.so(+0xaee8)[0x7f84cf83aee8]
+  # /usr/lib64/libsandbox.so(+0x6189)[0x7f84cf836189]
+  # /usr/lib64/libsandbox.so(+0x63a8)[0x7f84cf8363a8]
+  # /usr/lib64/libsandbox.so(+0x6c8f)[0x7f84cf836c8f]
+  # /usr/lib64/libsandbox.so(execve+0x3b)[0x7f84cf838f1b]
+  # /bin/bash[0x41b6fc]
+  # /bin/bash[0x41d1a6]
+  # /bin/bash[0x41de34]
+  # /bin/bash[0x45fb1b]
+  # /proc/10704/cmdline: /bin/bash /usr/bin/ldd /var/tmp/portage/dev-libs/gobject-introspection-1.52.1/work/gobject-introspection-1.52.1/tmp-introspectwQePOR/GLib-2.0 
+  #
+  "dev-libs/gobject-introspection no-sandbox.conf"
+
+  # Some problems with sandbox it seems present on sys-devel/gcc
+  "sys-devel/gcc no-sandbox.conf"
+
+  "sys-libs/glibc no-sandbox.conf"
+)
+
 sabayon_stage3_keywords () {
 
   local i=0
@@ -104,6 +195,7 @@ sabayon_stage3_init_equo () {
 
 sabayon_stage3_phase1_review () {
 
+  local i=0
   local ufile="/etc/portage/package.use/${SABAYON_STAGE3_USE_FILE}"
   local emerge_opts="-j --with-bdeps=y"
 
@@ -114,24 +206,17 @@ sabayon_stage3_phase1_review () {
   # seems that PYTHON_* are not read from make.defaults of the profile
   #-e 's:^PYTHON_SINGLE_TARGET=:#PYTHON_SINGLE_TARGET=:g' \
 
-  #   (sys-libs/ncurses-6.0-r1:0/6::gentoo, ebuild scheduled for merge) pulled in by
-  #  >=sys-libs/ncurses-5.9-r3:0=[static-libs?,abi_x86_32(-)?,abi_x86_64(-)?,abi_x86_x32(-)?,abi_mips_n32(-)?,abi_mips_n64(-)?,abi_mips_o32(-)?,abi_ppc_32(-)?,abi_ppc_64(-)?,abi_s390_32(-)?,abi_s390_64(-)?] required by (sys-libs/readline-7.0_p3:0/7::gentoo, ebuild scheduled for merge)
-  #                               ^^^^^^^^^^^^
+  for ((i = 0 ; i < ${#SABAYON_EXTRA_USE[@]} ; i++)) ; do
+    echo -e ${SABAYON_EXTRA_USE[${i}]} >> ${ufile}
+  done
 
-  # Avoid cycle dependency
-  echo "dev-libs/openssl -kerberos" >> ${ufile}
-  echo "app-crypt/mit-krb5 -openldap" >> ${ufile}
-  echo "sys-devel/clang -doc" >> ${ufile}
-  echo "sys-devel/llvm -doc" >> ${ufile}
+  [ ! -e /etc/portage/env/no-sandbox.conf ] && \
+    echo 'FEATURES="-sandbox -usersandbox"' > /etc/portage/env/no-sandbox.conf
 
-  # This is for cups useflag set as general...mmm... not so good
-  echo "x11-libs/gtk+ -cups" >> ${ufile}
-  echo "x11-libs/libxcb xkb" >> ${ufile}
-
-  # This permit compilation of gnome-keyring inside LXC/LXD containers
-  # TODO: Setting of capabilities are been fixed on kernel >4.14
-  echo "gnome-base/gnome-keyring -caps" >> ${ufile}
-  echo "sys-libs/pam -filecaps" >> ${ufile}
+  for ((i = 0 ; i < ${#SABAYON_EXTRA_ENV[@]} ; i++)) ; do
+    echo -e ${SABAYON_EXTRA_ENV[${i}]} >> \
+      /etc/portage/package.env/01-sabayon.package.env
+  done
 
   emerge -C $(qlist -IC dev-perl/) $(qlist -IC virtual/perl) \
     $(qlist -IC perl-core/) \
@@ -139,31 +224,10 @@ sabayon_stage3_phase1_review () {
     sys-apps/texinfo \
     app-eselect/eselect-python  || return 1
 
-  # To fix on package.keywords
-  echo "
-# 2017-11-26 Geaaru: block installation of masked version
->=dev-lang/perl-5.26.9999" >> /etc/portage/package.mask/00-sabayon.package.mask
-
-  # It seems that this is not masked
-  echo "
-# 2017-11-26 Geaaru: Use sabayon version
-app-crypt/pinentry::gentoo" >> /etc/portage/package.mask/00-sabayon.package.mask
-
-  echo "
-# 2017-11-26 Geaaru: Use sabayon version
-sys-devel/gcc::gentoo" >> /etc/portage/package.mask/00-sabayon.package.mask
-
-  # Temporary block upgrade of readline
-  # sys-libs/readline:0
-  #
-  #(sys-libs/readline-7.0_p3:0/7::gentoo, ebuild scheduled for merge) conflicts with
-  #  sys-libs/readline:0/0= required by (sys-apps/gawk-4.1.4:0/0::gentoo, installed)
-  #                   ^^^^^
-  #  >=sys-libs/readline-6.3:0/0= required by (app-shells/bash-4.3_p48-r1:0/0::gentoo, installed)
-  # 
-  echo "
-# 2017-11-26 Geaaru: temporary block
->=sys-libs/readline-7.0_p3" >> /etc/portage/package.mask/00-tmp.package.mask
+  for ((i = 0 ; i < ${#SABAYON_EXTRA_MASK[@]} ; i++)) ; do
+    echo ${SABAYON_EXTRA_MASK[${i}]} >> \
+      /etc/portage/package.mask/00-tmp.package.mask
+  done
 
   emerge ${emerge_opts} dev-perl/XML-Parser \
     $(qgrep -JN sys-libs/readline | cut -f1 -d":" | uniq | sed -e 's:^:=:g' ) || return 1
@@ -247,6 +311,18 @@ sabayon_stage3_phase2 () {
   return 0
 }
 
+sabayon_stage3_clean () {
+
+  rm -rf /var/tmp/ccache/*
+
+  rm /var/log/emerge.log
+
+  rm -rf /sabayon-stuff
+
+  rm -rf /usr/portage/
+
+}
+
 case $1 in
   init)
     sabayon_stage3_init
@@ -262,6 +338,9 @@ case $1 in
     if [ ${SABAYON_REBUILD} -eq 0 ] ; then
       sabayon_stage3_phase2
     fi
+    ;;
+  clean)
+    sabayon_stage3_clean
     ;;
   *)
   echo "Use init|phase1|phase2"
