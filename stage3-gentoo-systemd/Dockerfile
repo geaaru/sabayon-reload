@@ -20,23 +20,28 @@ RUN chmod a+x /sabayon-stuff/stage3.sh
 ADD ./portage-latest.tar.xz /usr
 
 # Set locales to en_US.UTF-8
-ENV LC_ALL=en_US.UTF-8
+ENV LC_ALL=en_US.utf8
+
+ENV TERM=linux
+
+RUN /sabayon-stuff/stage3.sh init
+# Add trigger for children images
+ONBUILD ADD ./sabayon-stuff/ /sabayon-stuff
+ONBUILD ADD ./portage-latest.tar.xz /usr
 
 # Set GENTOO_SKIP_SYNC VARIABLE
-ARG GENTOO_SKIP_SYNC=0
-ONBUILD ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
+# See bug: https://github.com/moby/moby/issues/34494
+# For now use default value from commons.sh
+#ARG GENTOO_SKIP_SYNC=0
+#ONBUILD ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
+
+# Set profile
+#ARG GENTOO_PROFILE_NAME=/systemd
+#ONBUILD ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
 
 # Set arch
 ARG SABAYON_ARCH=amd64
 ENV SABAYON_ARCH ${SABAYON_ARCH}
-
-# Set profile
-ARG GENTOO_PROFILE_NAME=/systemd
-ONBUILD ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
-
-RUN /sabayon-stuff/stage3.sh init
-
-ENV TERM=linux
 
 ARG CACHEBUST=1
 RUN /sabayon-stuff/stage3.sh rebuild

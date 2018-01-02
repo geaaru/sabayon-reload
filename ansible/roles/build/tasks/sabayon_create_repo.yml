@@ -1,0 +1,87 @@
+---
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for build sabayon-create-repo image
+
+- name: "Stage3 Sabayon Create Repo {{ current_arch }}"
+  vars:
+    current_build: "sabayon-create-repo-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/sabayon-create-repo"
+    repos_dir: "{{ builder_rootdir }}/sabayon-create-repo/repos"
+    current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+    docker_image_name: "{{ docker_user }}/sabayon-create-repo-{{ current_arch }}"
+    addition_pkgs:
+      - app-portage/eix
+      - app-crypt/gnupg
+      - sys-boot/efibootmgr
+      - app-eselect/eselect-bzimage
+      - app-admin/sudo
+      - sys-process/procps
+      - app-admin/perl-cleaner
+      - sys-apps/grep
+      - sys-apps/busybox
+      # bc is needed for compilation of klibc
+      # /bin/sh: bc: command not found
+      # make[1]: *** [Kbuild:66: include/generated/timeconst.h] Error 1
+      - sys-devel/bc
+      - sys-kernel/sabayon-sources
+      - app-misc/sabayon-live
+      - sys-boot/grub:2
+      - x11-themes/sabayon-artwork-grub
+      # ebuild of sabayon-artwork-isolinux-14-r1 is broken
+      - =x11-themes/sabayon-artwork-isolinux-13
+      - dev-perl/Module-Build
+      # wpa_supplicant-2.6-r4 it seems broken on linking
+      - =net-wireless/wpa_supplicant-2.6-r3
+      - net-misc/networkmanager
+      - sys-auth/nss-mdns
+      - app-misc/sabayon-devkit
+  block:
+
+    - name: "{{ current_build }}: Check for updated portage tarball"
+      include_role:
+        name: commons
+        tasks_from: download_portage
+
+    - name: "{{ current_build }}: Prepare build context"
+      include_role:
+        name: commons
+        tasks_from: prepare_ctx
+
+    - name: "{{ current_build }}: Create image {{ docker_image_name }}"
+      command: >
+        docker build -t {{ docker_image_name }}
+        --build-arg USER={{ docker_user }}
+        --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
+        --build-arg CACHEBUST={{ current_date }}
+        --build-arg SABAYON_REBUILD=1
+        --build-arg GENTOO_PROFILE_NAME="/sabayon"
+        --build-arg SABAYON_PROFILE_TARGETS="/systemd /sabayon/amd64"
+        .
+      args:
+        chdir: "{{ current_builddir }}"
+      register: sabayon_create_repo_build
+      tags:
+        - skip_build_create_repo
+
+    - name: "{{ current_build }}: Build result"
+      debug: var=sabayon_create_repo_build.stdout_lines
+      tags:
+        - skip_build_create_repo
+
+    - name: "{{ current_build }}: Create repository"
+      vars:
+        sabayon_required_pkgs: "{{ addition_pkgs | join(' ') }}"
+      command: >
+        docker run --rm --name create_repo
+        --cap-add=SYS_PTRACE
+        -v {{ repos_dir }}:/repos
+        -e "SABAYON_REQUIRED_PKGS={{ sabayon_required_pkgs }}"
+        {{ docker_image_name }}/{{ docker_image_name }}:latest
+      args:
+        chdir: "{{ current_builddir }}"
+      register: sabayon_create_repo_run
+
+    - name: "{{ current_build }}: Run result"
+      debug: var=sabayon_create_repo_run.stdout_lines
+
+

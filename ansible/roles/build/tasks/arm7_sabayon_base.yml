@@ -5,7 +5,7 @@
 - name: "Sabayon Base ARMv7A"
   vars:
     current_build: "sabayon-base-{{ current_arch }}"
-    current_builddir: "{{ builder_rootdir }}/sabayon-base-amd64"
+    current_builddir: "{{ builder_rootdir }}/sabayon-base"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/sabayon-base-{{ current_arch }}"
   block:

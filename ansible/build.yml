@@ -20,6 +20,8 @@
             - amd64_sabayon_base
             - amd64_sabayon_spinbase
             - amd64_sabayon_builder
+            - amd64_sabayon_stage3_reload
+            - amd64_sabayon_create_repo
           include_role:
             name: commons
             tasks_from: check_qemu
@@ -39,6 +41,20 @@
           include_role:
             name: build
             tasks_from: sabayon_stage3
+
+        - name: Build Sabayon Stage3 Reload
+          tags:
+            - amd64_sabayon_stage3_reload
+          include_role:
+            name: build
+            tasks_from: sabayon_stage3_reload
+
+        - name: Build Sabayon Create Repo
+          tags:
+            - amd64_sabayon_create_repo
+          include_role:
+            name: build
+            tasks_from: sabayon_create_repo
 
         - name: Build Sabayon Base
           tags:

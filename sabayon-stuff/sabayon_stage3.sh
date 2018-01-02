@@ -11,10 +11,9 @@ SABAYON_STAGE3_PACKAGE_USE=(
   "dev-lang/python sqlite -tk"
   "sys-apps/file python"
 )
-SABAYON_STAGE3_KEYWORDS_FILE="${SABAYON_STAGE3_KEYWORDS_FILE:-00-sabayon.package.keywords}"
-SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-00-sabayon.package.use}"
+SABAYON_STAGE3_KEYWORDS_FILE="${SABAYON_STAGE3_KEYWORDS_FILE:-01-sabayon.package.keywords}"
+SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-01-sabayon.package.use}"
 SABAYON_EQUO_DIR="/var/lib/entropy/client/database/"
-SABAYON_REBUILD=${SABAYON_REBUILD:-0}
 
 SABAYON_EXTRA_MASK=(
   # To fix on package.keywords
@@ -44,6 +43,11 @@ SABAYON_EXTRA_MASK=(
   #  >=sys-libs/readline-6.3:0/0= required by (app-shells/bash-4.3_p48-r1:0/0::gentoo, installed)
   "# 2017-11-26 Geaaru: temporary block"
   ">=sys-libs/readline-7.0_p3"
+  ""
+  ## [Filesystem baselayout and init scripts]
+  # !!! copy /var/tmp/entropy/sys-apps/baselayout-2.3/cbah9K/image/etc/hosts -> /etc/hosts failed.
+  "# 2017-12-30 Geaaru: Mask baselayout for override of /etc/hosts file"
+  "sys-apps/baselayout::gentoo"
   ""
 )
 
@@ -222,6 +226,8 @@ sabayon_stage3_phase1_review () {
     $(qlist -IC perl-core/) \
     app-crypt/pinentry \
     sys-apps/texinfo \
+    sys-apps/baselayout \
+    dev-python/requests \
     app-eselect/eselect-python  || return 1
 
   for ((i = 0 ; i < ${#SABAYON_EXTRA_MASK[@]} ; i++)) ; do
@@ -321,6 +327,7 @@ sabayon_stage3_clean () {
 
   rm -rf /usr/portage/
 
+  return 0
 }
 
 case $1 in

@@ -1,14 +1,13 @@
 ---
 # Author:  Geaaru, geaaru@gmail.com
-# Description: Script for build sabayon-base-amd64 image
+# Description: Script for build sabayon-base image
 
-- name: "Sabayon Base AMD64"
+- name: "Sabayon Base {{ current_arch }}"
   vars:
-    current_build: "sabayon-base-amd64"
-    current_arch: 'amd64'
-    current_builddir: "{{ builder_rootdir }}/sabayon-base-amd64"
+    current_build: "sabayon-base-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/sabayon-base"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
-    docker_image_name: "{{ docker_user }}/sabayon-base-amd64"
+    docker_image_name: "{{ docker_user }}/sabayon-base-{{ current_arch }}"
   block:
 
     - name: "{{ current_build }}: Check for updated portage tarball"

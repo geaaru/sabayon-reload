@@ -13,6 +13,7 @@ SABAYON_PORTAGE_CONF_REPOS=${SABAYON_PORTAGE_CONF_REPOS:-https://github.com/Saba
 SABAYON_PORTAGE_CONF_INSTALLDIR="${SABAYON_PORTAGE_CONF_INSTALLDIR:-/opt}"
 SABAYON_PORTAGE_CONF_INSTALLNAME="${SABAYON_PORTAGE_CONF_INSTALLNAME:-sabayon-build}"
 SABAYON_PROFILE_TARGETS="${SABAYON_PROFILE_TARGETS:-/systemd}"
+SABAYON_REBUILD=${SABAYON_REBUILD:-0}
 #SABAYON_PROFILE_TARGETS="/systemd /sabayon/amd64"
 
 sabayon_build_info () {
@@ -21,7 +22,8 @@ sabayon_build_info () {
 
   echo "
 GENTOO_PROFILE_VERSION            = ${GENTOO_PROFILE_VERSION}
-GENTOO_PROFILE_NAME               = ${profile}
+GENTOO_PROFILE_NAME               = ${GENTOO_PROFILE_NAME}
+GENTOO_PROFILE                    = ${profile}
 GENTOO_SKIP_SYNC                  = ${GENTOO_SKIP_SYNC}
 SABAYON_PROFILE_TARGETS           = ${SABAYON_PROFILE_TARGETS}
 SABAYON_ARCH                      = ${SABAYON_ARCH}
@@ -257,6 +259,7 @@ sabayon_add_profile4target () {
   local profile_desc="default/linux/${arch}/${GENTOO_PROFILE_VERSION}${profile_name}"
 
   echo "Profile Path: ${profile_dir}"
+  echo "Targets: ${targets}"
 
   local pwd_dir=$(pwd)
 
@@ -276,7 +279,11 @@ sabayon_add_profile4target () {
       # TODO: Temporary workaround to test feature and compilation with sabayon
       # targets.
       if [[ ${target} == *sabayon* ]] ; then
-        sabayon_create_targets ${target} || return 1
+        sabayon_create_targets "${target}"
+        if [ $? -eq 1 ] ; then
+          echo "ERROR from sabayon_create_targets"
+          return 1
+        fi
       fi
 
       echo "For profile ${profile_name} for arch ${arch} connect target ${target}..."
@@ -293,6 +300,8 @@ sabayon_add_profile4target () {
     add_profile_desc=$(cat ${PORTDIR}/profiles/profiles.desc  | grep "${profile_desc}"  | wc -l)
 
     if [ ${add_profile_desc} -eq 0 ] ; then
+
+      echo "Creating profile ${profile_desc} on file ${PORTDIR}/profiles/profiles.desc ..."
 
       local i=0
       local word=""
@@ -322,6 +331,10 @@ sabayon_add_profile4target () {
       # Add profiles to list
       echo -en "${profiles_desc}\n" > ${PORTDIR}/profiles/profiles.desc
 
+    else
+
+      echo "Profile ${profiles_desc} already present on ${PORTDIR}/profiles/profiles.desc file."
+
     fi
 
   else
@@ -333,7 +346,7 @@ sabayon_add_profile4target () {
 
 sabayon_init_portage () {
 
-  local skip_sync=${GENTOO_SKIP_SYNC:-0}
+  local skip_sync=${GENTOO_SKIP_SYNC:-1}
 
   if [ ${skip_sync} -eq 0 ] ; then
     emerge --sync || return 1
@@ -398,9 +411,13 @@ sabayon_create_targets () {
   local buildir="${SABAYON_PORTAGE_CONF_INSTALLDIR}/${SABAYON_PORTAGE_CONF_INSTALLNAME}"
   local build_arch="${buildir}/conf/${SABAYON_ARCH}/portage"
 
+  echo "Creating targetdir ${targetdir}..."
+
   sabayon_install_build || return 1
 
   if [ "${SABAYON_ARCH}" == "amd64" ] ; then
+
+    echo "======> Prepare target ${target_name} for ARCH ${SABAYON_ARCH}"
 
     if [ ! -d ${targetdir} ] ; then
 
@@ -419,7 +436,8 @@ sabayon_create_targets () {
 
       ln -s ${build_arch}/profile/package.use.force/00-sabayon.package.use.force package.use.force
       ln -s ${build_arch}/package.use/00-sabayon.package.use package.use
-      ln -s ${build_arch}/package.keywords/00-sabayon.package.keywords package.keywords
+      # package.keywords is not usable under target, use package.accept_keywords
+      ln -s ${build_arch}/package.keywords/00-sabayon.package.keywords package.accept_keywords
 
       # TODO: To fix on upstream
       # --- Invalid atom in /usr/portage/profiles/targets/sabayon/amd64/package.keywords: perl-core/*
@@ -430,36 +448,47 @@ sabayon_create_targets () {
 
       # TODO: it seems thata PMS documentation doesn't describe use of package.env
       #       file. I move for now this under /etc/portage/
-      [ ! -d /etc/portage/package.use.mask ] && \
+      if [ ! -d /etc/portage/package.env ] ; then
         mkdir -p /etc/portage/package.env || return 1
-      [ ! -e /etc/portage/package.env/00-sabayon.package.env ] && \
+      fi
+
+      if [ ! -e /etc/portage/package.env/00-sabayon.package.env ] ; then
         ln -s ${build_arch}/package.env.${SABAYON_ARCH} \
           /etc/portage/package.env/00-sabayon.package.env || return 1
+      fi
 
       ln -s ${build_arch}/profile/virtuals .
 
       # Currently PMS specification (targets/profiles) doesn't support syntax with ::repos
       # I will create a link on /etc/portage
-      ln -s ${build_arch}/package.mask/00-sabayon.package.mask \
+      if [ ! -f /etc/portage/package.mask/00-sabayon.package.mask ] ; then
+        ln -s ${build_arch}/package.mask/00-sabayon.package.mask \
         /etc/portage/package.mask/00-sabayon.package.mask
+      fi
 
-      [ ! -d /etc/portage/package.use.mask ] && \
+      if [ ! -d /etc/portage/package.use.mask ] ; then
         mkdir -p /etc/portage/package.use.mask || return 1
-      [ ! -e /etc/portage/package.use.mask/00-sabayon.mask ] && \
+      fi
+      if [ ! -e /etc/portage/package.use.mask/00-sabayon.mask ] ; then
         ln -s ${build_arch}/profile/package.use.mask/00-sabayon.mask \
-          /etc/portage/package.use.mask/00-sabayon.mask
+          /etc/portage/package.use.mask/00-sabayon.mask || return 1
+      fi
 
-      [ ! -d /etc/portage/package.unmask ] && \
+      if [ ! -d /etc/portage/package.unmask ] ; then
         mkdir -p /etc/portage/package.unmask || return 1
-      [ ! -e /etc/portage/package.unmask/00-sabayon.package.unmask ] && \
+      fi
+      if [ ! -e /etc/portage/package.unmask/00-sabayon.package.unmask ] ; then
         ln -s ${build_arch}/package.unmask/00-sabayon.package.unmask \
           /etc/portage/package.unmask/00-sabayon.package.unmask
-      [ ! -e /etc/portage/package.license ] && \
+      fi
+      if [ ! -e /etc/portage/package.license ] ; then
         ln -s ${build_arch}/package.license /etc/portage/package.license
+      fi
 
       # TODO: Check if env must be moved to /etc/portage
-      [ ! -e /etc/portage/package/env ] &&
+      if [ ! -e /etc/portage/env ] ; then
         ln -s ${build_arch}/env /etc/portage/env || return 1
+      fi
 
       # Disable gentoo3 default CPU_FLAGS, USE, CFLAGS, CXXFLAGS
       # from /etc/portage/make.conf
@@ -481,6 +510,8 @@ sabayon_create_targets () {
     echo "ARCH ${SABAYON_ARCH} not yet supported."
     return 1
   fi
+
+  echo "Complete creation of targetdir ${targetdir}."
 
   return 0
 }
@@ -626,6 +657,69 @@ sabayon_configure_repoman () {
   chown -R root:portage ${PORTDIR}/distfiles/ || return 1
 
   chmod g+w ${PORTDIR}/distfiles/ || return 1
+
+  return 0
+}
+
+sabayon_create_server_repofile () {
+
+  local community_mode=${1:-disable}
+  local rss_base_url="${2:-http://packages.sabayon.org/?quicksearch=}"
+  local site_url="${3:-http://www.sabayon.org}"
+
+  local repos="${SABAYON_REPOS_NAME}"
+  repos="${repos}|${SABAYON_REPOS_DESC}"
+  repos="${repos}|${SABAYON_REPOS_PROTO}://${SABAYON_REPOS_PATH}/${SABAYON_REPOS_NAME}"
+
+  echo "community-mode = ${community_mode}
+default-repository = ${SABAYON_REPOS_NAME}
+weak-package-files = disable
+database-format = bz2
+rss-feed = enable
+changelog = enable
+rss-name = packages.rss
+rss-base-url = ${rss_base_url}
+rss-website-url = ${site_url}
+max-rss-entries = 10000
+rss-light-name = updates.rss
+managing-editor =
+broken-reverse-deps = enable
+repository = ${repos}
+" > /etc/entropy/server.conf || return 1
+
+  return 0
+}
+
+sabayon_create_repofile () {
+
+  local enable=${1:-enable}
+  local name=${2:-${SABAYON_REPOS_NAME}}
+  local desc=${3:-${SABAYON_REPOS_DESC}}
+  local proto=${4:-${SABAYON_REPOS_PROTO}}
+  local path=${5:-${SABAYON_REPOS_PATH}}
+  local validate_cert=${6:-${SABAYON_REPOS_VALIDATECERT}}
+  local basic_auth_user=${7:-${SABAYON_REPOS_USER}}
+  local basic_auth_pwd=${8:-${SABAYON_REPOS_PWD}}
+  local https_validate_cert=""
+  local basic_auth=""
+
+  if [ -n "${validate_cert}" ] ; then
+    https_validate_cert="https_validate_cert = ${validate_cert}"
+  fi
+
+  if [[ -n "${basic_auth_user}" && -n "${basic_auth_pwd}" ]] ; then
+    basic_auth="username = ${basic_auth_user}
+password = ${basic_auth_pwd}"
+  fi
+
+  echo "[${name}]
+desc = ${desc}
+repo = ${proto}://${path}${name}/
+pkg = ${proto}://${path}${name}/
+enable = ${enable}
+${https_validate_cert}
+${basic_auth}
+" > /etc/entropy/repositories.conf.d/entropy_${name} || return 1
 
   return 0
 }

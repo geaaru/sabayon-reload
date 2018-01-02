@@ -5,7 +5,7 @@
 - name: "Stage3 Sabayon Systemd ARMv7a-hfp"
   vars:
     current_build: "stage3-sabayon-armv7a_hardfp"
-    current_builddir: "{{ builder_rootdir }}/stage3-sabayon-amd64"
+    current_builddir: "{{ builder_rootdir }}/stage3-sabayon"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/stage3-sabayon-armv7a_hardfp"
   block:

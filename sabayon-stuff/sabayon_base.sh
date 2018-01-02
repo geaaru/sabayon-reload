@@ -79,7 +79,6 @@ FILES_TO_REMOVE=(
   "/.zcompdump"
   "/var/log/emerge.log"
   "/var/log/emerge-fetch.log"
-  "/usr/portage/licenses"
   "/etc/entropy/packages/license.accept"
 
   # Cleaning portage metadata cache
@@ -94,6 +93,8 @@ FILES_TO_REMOVE=(
 
   # Cleanup old portage profile files/dirs
   "/etc/make.profile"
+
+  "/sabayon-stuff"
 )
 
 PACKAGE_TO_ASSIMILATE=(
@@ -114,6 +115,15 @@ sabayon_base_init () {
   equo up || return 1
 
   equo repo mirrorsort sabayonlinux.org || return 1
+
+  return 0
+}
+
+sabayon_base_init_rebuild () {
+
+  sabayon_config_portage_licenses || return 1
+
+  equo up || return 1
 
   return 0
 }
@@ -173,6 +183,11 @@ sabayon_base_phase2 () {
 
   equo cleanup || return 1
 
+  return 0
+}
+
+sabayon_base_clean () {
+
   # Cleanup
   rm -rf "${FILES_TO_REMOVE[@]}" || return 1
 
@@ -182,7 +197,11 @@ sabayon_base_phase2 () {
 
 case $1 in
   init)
-    sabayon_base_init
+    if [ ${SABAYON_REBUILD} -eq 1 ] ; then
+      sabayon_base_init_rebuild
+    else
+      sabayon_base_init
+    fi
     ;;
   phase1)
     sabayon_base_phase1
@@ -190,8 +209,11 @@ case $1 in
   phase2)
     sabayon_base_phase2
     ;;
+  clean)
+    sabayon_base_clean
+    ;;
   *)
-  echo "Use init|phase1|phase2"
+  echo "Use init|phase1|phase2|clean"
   exit 1
 esac
 
