@@ -1,0 +1,30 @@
+---
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for build sabayon-check-overlay image
+
+- name: "Sabayon Check Overlay {{ current_arch }}"
+  vars:
+    current_build: "sabayon-check-overlay-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/sabayon-check-overlay"
+    current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+    docker_image_name: "{{ docker_user }}/sabayon-check-overlay-{{ current_arch }}"
+  block:
+
+    - name: "{{ current_build }}: Prepare build context"
+      include_role:
+        name: commons
+        tasks_from: prepare_ctx
+
+    - name: "{{ current_build }}: Create image {{ docker_image_name }}"
+      command: >
+        docker build -t {{ docker_image_name }}
+        --build-arg USER={{ docker_user }}
+        --build-arg CACHEBUST={{ current_date }} .
+      args:
+        chdir: "{{ current_builddir }}"
+      register: sabayon_build
+
+    - name: "{{ current_build }}: Build result"
+      debug: var=sabayon_build.stdout_lines
+
+

@@ -1,0 +1,26 @@
+---
+
+# Author: Geaaru, geaaru@gmail.com
+# Description: Script for prepare local repository for build volume mount
+#
+
+- name: "{{ current_build }}: Check if exists already repos directory"
+  stat:
+    path: "{{ current_builddir }}/repos"
+  register: repos_stat_dir
+
+- name: "{{ current_build }}: Create directory {{ current_builddir }}/repos"
+  command: mkdir -p {{ current_builddir }}/repos
+  when: not repos_stat_dir.stat.exists
+
+- name: "{{ current_build }}: Retrieve list of repositories"
+  command: ls {{ repo_dir }}
+  register: repos_list
+  args:
+    chdir: "{{ builder_rootdir }}"
+
+- name: "{{ current_build }}: Copy repository {{ repo_dir }}"
+  command: cp -arf  {{ repos_list.stdout }} {{ current_builddir }}/repos/
+  args:
+    chdir: "{{ repo_dir }}"
+

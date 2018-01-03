@@ -1,0 +1,27 @@
+---
+
+# Author: Geaaru, geaaru@gmail.com
+# Description: Script for prepare local repository for build volume mount
+#
+
+- name: "{{ current_build }}: Check if exists already repos directory"
+  stat:
+    path: "{{ repo_dir }}"
+  register: repos_stat_dir
+
+- name: "{{ current_build }}: Create directory {{ repo_dir }}"
+  command: mkdir -p {{ repo_dir }}
+  when: not repos_stat_dir.stat.exists
+
+- name: "{{ current_build }}: Retrieve list of repositories"
+  command: ls sabayon-create-repo/repos/
+  register: repos_list
+  args:
+    chdir: "{{ builder_rootdir }}"
+
+- name: "{{ current_build }}: Copy repository under {{ repo_dir }} directory."
+  command: cp -arf  {{ repos_list.stdout }} {{ repo_dir }}/
+  args:
+    chdir: "{{ builder_rootdir }}/sabayon-create-repo/repos"
+
+

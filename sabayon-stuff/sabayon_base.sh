@@ -95,6 +95,8 @@ FILES_TO_REMOVE=(
   "/etc/make.profile"
 
   "/sabayon-stuff"
+
+  "/repos"
 )
 
 PACKAGE_TO_ASSIMILATE=(
@@ -104,6 +106,7 @@ PACKAGE_TO_ASSIMILATE=(
   # @@ dev-lang/python-exec-2.4.5: found altered files
   # /etc/python-exec/python-exec.conf
   "dev-lang/python-exec"
+
 )
 
 sabayon_base_init () {
@@ -122,6 +125,10 @@ sabayon_base_init () {
 sabayon_base_init_rebuild () {
 
   sabayon_config_portage_licenses || return 1
+
+  echo "Creating repos file for ${SABAYON_REPOS_NAME}..."
+  sabayon_create_repofile || return 1
+  echo "Created repos file for ${SABAYON_REPOS_NAME}."
 
   equo up || return 1
 
@@ -167,6 +174,17 @@ sabayon_base_phase2 () {
   # install vim
   echo "Installing app-editors/vim ..."
   equo i app-editors/vim || return 1
+
+  if [ ${SABAYON_REBUILD} -eq 1 ] ; then
+
+    #/usr/lib32/gtk-2.0/2.10.0/immodules.cache
+    #/usr/lib64/gtk-2.0/2.10.0/immodules.cache
+    PACKAGE_TO_ASSIMILATE+=( "x11-libs/gtk+:2" )
+    PACKAGE_TO_ASSIMILATE+=( "x11-libs/gtk+:3" )
+    # /etc/locale.gen
+    PACKAGE_TO_ASSIMILATE+=( "sys-libs/glibc" )
+
+  fi
 
   # Assimilate changes
   # NOTE: Assimilate doesn't return 0 on assimilated new hashes

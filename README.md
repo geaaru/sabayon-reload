@@ -65,6 +65,8 @@ gentoo-stage3 (systemd profile)
      |
      |
      +--> sabayon-stage3 ------> sabayon-base  ----> sabayon-spinbase --> sabayon-builder
+     |                              |
+     |                               \-> sabayon-check-overlay
      |
      \
       \-> sabayon-stage3-reload -> sabayon-create-repo ===> sabayon-base-reload ---> sabayon-rebuilder

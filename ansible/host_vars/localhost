@@ -8,3 +8,5 @@ sabayon_skip_sync: 1
 staging_dir: ./staging
 lxd_target_server: local
 lxd_skip_pull: 1
+repo_local: 1
+repo_dir: /repos

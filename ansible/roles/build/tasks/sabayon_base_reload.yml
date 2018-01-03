@@ -1,0 +1,39 @@
+---
+# Author:  Geaaru, geaaru@gmail.com
+# Description: Script for build sabayon-base-reload image
+
+- name: "Sabayon Base Reload {{ current_arch }}"
+  vars:
+    current_build: "sabayon-base-reload-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/sabayon-base-reload"
+    current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
+    docker_image_name: "{{ docker_user }}/sabayon-base-reload-{{ current_arch }}"
+  block:
+
+    - name: "{{ current_build }}: Check for updated portage tarball"
+      include_role:
+        name: commons
+        tasks_from: download_portage
+
+    - name: "{{ current_build }}: Prepare build context"
+      include_role:
+        name: commons
+        tasks_from: prepare_ctx
+
+    - name: "{{ current_build }}: Copy repository for build"
+      include_role:
+        name: commons
+        tasks_from: prepare_repo
+
+    - name: "{{ current_build }}: Create image {{ docker_image_name }}"
+      command: >
+        docker build -t {{ docker_image_name }}
+        --build-arg USER={{ docker_user }}
+        --build-arg CACHEBUST={{ current_date }} .
+      args:
+        chdir: "{{ current_builddir }}"
+      register: sabayon_base_build
+
+    - name: "{{ current_build }}: Build result"
+      debug: var=sabayon_base_build.stdout_lines
+

@@ -22,6 +22,8 @@
             - amd64_sabayon_builder
             - amd64_sabayon_stage3_reload
             - amd64_sabayon_create_repo
+            - amd64_sabayon_base_reload
+            - amd64_sabayon_check_overlay
           include_role:
             name: commons
             tasks_from: check_qemu
@@ -63,6 +65,13 @@
             name: build
             tasks_from: sabayon_base
 
+        - name: Build Sabayon Base Reload
+          tags:
+            - amd64_sabayon_base_reload
+          include_role:
+            name: build
+            tasks_from: sabayon_base_reload
+
         - name: Build Sabayon Spinbase
           tags:
             - amd64_sabayon_spinbase
@@ -76,6 +85,13 @@
           include_role:
             name: build
             tasks_from: sabayon_builder
+
+        - name: Build Sabayon Check Overlay
+          tags:
+            - amd64_sabayon_check_overlay
+          include_role:
+            name: build
+            tasks_from: sabayon_check_overlay
 
     - name: Build ARM-7A image
       tags:
