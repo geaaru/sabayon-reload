@@ -51,15 +51,12 @@ ARG SABAYON_REPOS_PROTO=file
 ENV SABAYON_REPOS_PROTO ${SABAYON_REPOS_PROTO}
 
 ARG CACHEBUST=1
-# Prepare env for equo emerge and equo rescue
-RUN /sabayon-stuff/sabayon_create_repo.sh init
-
-# Install equo and execute equo rescue
-RUN /sabayon-stuff/sabayon_create_repo.sh phase1
-
-# Clean compilation stuff
-RUN /sabayon-stuff/sabayon_create_repo.sh clean
-
+# * Prepare env for equo emerge and equo rescue
+# * Install equo and execute equo rescue
+# * Clean compilation stuff
+RUN /sabayon-stuff/sabayon_create_repo.sh init && \
+      /sabayon-stuff/sabayon_create_repo.sh phase1 && \
+      /sabayon-stuff/sabayon_create_repo.sh clean
 
 # Define default command.
 ENTRYPOINT ["/sabayon-stuff/sabayon_create_repo.sh", "files"]

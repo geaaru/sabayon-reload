@@ -3,7 +3,7 @@
 
 MAKE_PORTAGE_FILE=${MAKE_PORTAGE_FILE:-/etc/portage/make.conf}
 REPOS_CONF_DIR=${REPOS_CONF_DIR:-/etc/portage/repos.conf/}
-GENTOO_PROFILE_VERSION="${GENTOO_PROFILE_VERSION:-13.0}"
+GENTOO_PROFILE_VERSION="${GENTOO_PROFILE_VERSION:-17.0}"
 GENTOO_PROFILE_NAME="${GENTOO_PROFILE_NAME:-/systemd}"
 #GENTOO_PROFILE_NAME="/sabayon"
 PORTDIR=${PORTDIR:-/usr/portage}
@@ -181,7 +181,7 @@ sabayon_set_python_targets () {
 
 sabayon_set_python_single_target () {
 
-  local targets=${1:-python2_7}
+  local targets=${1:-python3_5}
 
   echo "PYTHON_SINGLE_TARGET=\"${targets}\"" >> ${MAKE_PORTAGE_FILE}
 
@@ -380,7 +380,9 @@ sabayon_install_build () {
 
     pushd ${builddir}
 
-    git pull -ff
+    git add .
+    git commit . -m "Local changes"
+    EDITOR=cat git pull -ff
 
   else
     pushd "${SABAYON_PORTAGE_CONF_INSTALLDIR}"
@@ -539,7 +541,10 @@ sabayon_configure_portage () {
 sabayon_config_portage_empty () {
 
   local only_creation_file=${1:-0}
-  local additional_opts=${2}
+  local exclude_profiles=${2:-0}
+  local create_licence_accept="${3:-0}"
+  local additional_opts=${4}
+  local profiles_dirs=""
 
   # Maintains only licenses directory
   #   ! -name '*profiles' \
@@ -549,10 +554,12 @@ sabayon_config_portage_empty () {
 
   if [ ${only_creation_file} -eq 0 ] ; then
 
+    if [ ${exclude_profiles} -eq 1 ] ; then
+      profiles_dirs="! -name '*profiles' -name '*targets'"
+    fi
+
     local rmdirs=$(find ${PORTDIR} -maxdepth 1 -type d \
-      ! -name '*metadata' \
-      ! -name '*profiles' \
-      ! -name '*targets' ${additional_opts} \
+      ! -name '*metadata' ${profiles_dirs} ${additional_opts} \
       ! -path ${PORTDIR} ! -name '*licenses')
 
     for i in ${rmdirs} ; do
@@ -562,8 +569,10 @@ sabayon_config_portage_empty () {
 
   fi
 
-  # Accept all licenses
-  ls ${PORTDIR}/licenses -1 | xargs -0 > /etc/entropy/packages/license.accept || return 1
+  if [ ${create_licence_accept} -eq 1 ] ; then
+    # Accept all licenses
+    ls ${PORTDIR}/licenses -1 | xargs -0 > /etc/entropy/packages/license.accept || return 1
+  fi
 
   return 0
 }

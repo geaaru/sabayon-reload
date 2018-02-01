@@ -24,7 +24,6 @@ FILES_TO_REMOVE=(
   "/var/tmp/ccache/*"
   "/var/log/emerge.log"
   "/var/log/entropy/*"
-#  "/sabayon-stuff"
   "/usr/portage/distfiles/"
   "/usr/portage/packages/"
   "/etc/portage/patches/"
@@ -77,6 +76,11 @@ sabayon_create_repo_phase1 () {
   cp /sabayon-stuff/patches/eit_fix_ask_commit.patch \
     /etc/portage/patches/sys-apps/entropy-server
 
+  # TEMPORARY: Apply patch to sabayon-version to force gcc 6.4.0
+  sed -e 's:GCC_VER="5.4.0":GCC_VER="6.4.0":g' -i \
+    /var/lib/layman/sabayon-distro/app-misc/sabayon-version/sabayon-version-18.02.ebuild
+  ebuild /var/lib/layman/sabayon-distro/app-misc/sabayon-version/sabayon-version-18.02.ebuild digest
+
   for ((i = 0 ; i < ${#SABAYON_EXTRA_ENV[@]} ; i++)) ; do
     echo -e ${SABAYON_EXTRA_ENV[${i}]} >> \
       /etc/portage/package.env/01-sabayon.package.env
@@ -108,6 +112,10 @@ sabayon_create_repo_compile () {
 sabayon_create_repo_files () {
 
   sabayon_repo_info
+
+  if [ -e /pre-script ] ; then
+    /pre-script || return 1
+  fi
 
   sabayon_create_repo_compile "${SABAYON_REQUIRED_PKGS}" || return 1
 

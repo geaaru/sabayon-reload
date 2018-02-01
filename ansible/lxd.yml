@@ -108,6 +108,61 @@
         name: lxd
         tasks_from: image_test
 
+    - name: Upload to LXD Sabayon Stage3 Reload Image
+      tags:
+        - amd64_sabayon_stage3_reload
+      vars:
+        current_build: "stage3-sabayon-reload-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/stage3-sabayon-reload-amd64"
+        lxd_os_image: "sabayon"
+        lxd_distro_image: "Sabayon"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 1
+        lxd_image_alias: "Sabayon Stage3 Reload"
+        lxd_container_name: "{{ container_name | default('stage3-sabayon-reload') }}"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test
+
+    - name: Upload to LXD Sabayon Create Repo Image
+      tags:
+        - amd64_sabayon_create_repo
+      vars:
+        current_build: "sabayon-create-repo-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/sabayon-create-repo-amd64"
+        lxd_os_image: "sabayon"
+        lxd_distro_image: "Sabayon"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 1
+        lxd_image_alias: "Sabayon Create Repo"
+        lxd_container_name: "{{ container_name | default('sabayon-create-repo') }}"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test
+
+    - name: Upload to LXD Sabayon Base Reload Image
+      tags:
+        - amd64_sabayon_base_reload
+      vars:
+        current_build: "sabayon-base-reload-amd64"
+        current_arch: 'amd64'
+        docker_image_name: "{{ docker_user }}/sabayon-base-reload-amd64"
+        lxd_os_image: "sabayon"
+        lxd_distro_image: "Sabayon"
+        lxd_release_image: "daily"
+        lxd_unprivileged_image: 1
+        lxd_image_alias: "Sabayon Base Reload"
+        lxd_container_name: "{{ container_name | default('sabayon-base-reload') }}"
+        lxd_config_raw_lxc: "lxc.init.cmd = /sbin/init systemd.legacy_systemd_cgroup_controller=yes"
+      include_role:
+        name: lxd
+        tasks_from: image_test
+
+
     - name: Upload to LXD ARMv7a Gentoo Stage3 Image
       tags:
         - arm7_gentoo_stage3

@@ -9,7 +9,7 @@
     repos_dir: "{{ builder_rootdir }}/sabayon-create-repo/repos"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/sabayon-create-repo-{{ current_arch }}"
-    addition_pkgs:
+    additional_pkgs:
       - app-portage/eix
       - app-crypt/gnupg
       - sys-boot/efibootmgr
@@ -18,6 +18,9 @@
       - sys-process/procps
       - app-admin/perl-cleaner
       - sys-apps/grep
+      # Needed for error on compile linux-sabayon kernel
+      # ERROR: Binary /usr/sbin/iscsistart could not be found
+      - sys-block/open-iscsi
       - sys-apps/busybox
       # bc is needed for compilation of klibc
       # /bin/sh: bc: command not found
@@ -26,6 +29,11 @@
       - sys-kernel/sabayon-sources
       - app-misc/sabayon-live
       - sys-boot/grub:2
+      # plymouth and sabayon-artwork-plymouth-default
+      # are used by linux-sabayon kernel.
+      - sys-boot/plymouth::sabayon-distro
+      # - x11-themes/sabayon-artwork-plymouth-base
+      - x11-themes/sabayon-artwork-plymouth-default
       - x11-themes/sabayon-artwork-grub
       # ebuild of sabayon-artwork-isolinux-14-r1 is broken
       - =x11-themes/sabayon-artwork-isolinux-13
@@ -64,15 +72,20 @@
       tags:
         - skip_build_create_repo
 
-    - name: "{{ current_build }}: Create repository"
+    - name: "{{ current_build }}: Get ABS path of build directory"
+      command: readlink -f {{ current_builddir }}
+      register: build_dir
+
+    - name: "{{ current_build }}: Run build of main packages"
       vars:
-        sabayon_required_pkgs: "{{ addition_pkgs | join(' ') }}"
+        sabayon_required_pkgs: "{{ additional_pkgs | join(' ') }}"
       command: >
         docker run --rm --name create_repo
         --cap-add=SYS_PTRACE
-        -v {{ repos_dir }}:/repos
+        -v {{ build_dir.stdout }}/repos:/repos
+        -v {{ build_dir.stdout }}/scripts/pre-script:/pre-script
         -e "SABAYON_REQUIRED_PKGS={{ sabayon_required_pkgs }}"
-        {{ docker_image_name }}/{{ docker_image_name }}:latest
+        {{ docker_image_name }}:latest
       args:
         chdir: "{{ current_builddir }}"
       register: sabayon_create_repo_run

@@ -20,13 +20,6 @@ ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
 #ENV TERM=linux
 #ENV SABAYON_ARCH=amd64
 
-# Add sabayon-stuff files (from trigger)
-# ADD ./sabayon-stuff/ /sabayon-stuff
-RUN chmod a+x /sabayon-stuff/sabayon_stage3.sh
-
-# Add latest portage (from trigger)
-#ADD ./portage-latest.tar.xz /usr
-
 ARG SABAYON_PROFILE_TARGETS=/systemd
 ENV SABAYON_PROFILE_TARGETS ${SABAYON_PROFILE_TARGETS}
 
@@ -40,17 +33,22 @@ ARG GENTOO_PROFILE_NAME=/systemd
 ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
 
 ARG CACHEBUST=1
-# Prepare env for equo emerge and equo rescue
-RUN /sabayon-stuff/sabayon_stage3.sh init
 
-# Install equo and execute equo rescue
-RUN /sabayon-stuff/sabayon_stage3.sh phase1
+# Add sabayon-stuff files (from trigger)
+# ADD ./sabayon-stuff/ /sabayon-stuff
+RUN chmod a+x /sabayon-stuff/sabayon_stage3.sh
 
-# Prepare portage environment for compilation
-RUN /sabayon-stuff/sabayon_stage3.sh phase2
+# Add latest portage (from trigger)
+#ADD ./portage-latest.tar.xz /usr
 
-# Clean compilation stuff
-RUN /sabayon-stuff/sabayon_stage3.sh clean
+# * Prepare env for equo emerge and equo rescue (init)
+# * Install equo and execute equo rescue (phase1)
+# * Prepare portage environment for compilation (phase2)
+# * Clean compilation stuff
+RUN /sabayon-stuff/sabayon_stage3.sh init && \
+      /sabayon-stuff/sabayon_stage3.sh phase1 && \
+      /sabayon-stuff/sabayon_stage3.sh phase2 && \
+      /sabayon-stuff/sabayon_stage3.sh clean
 
 # Define default command.
 CMD ["/bin/bash"]

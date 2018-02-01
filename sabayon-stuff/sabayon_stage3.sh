@@ -41,9 +41,9 @@ SABAYON_EXTRA_MASK=(
   #  sys-libs/readline:0/0= required by (sys-apps/gawk-4.1.4:0/0::gentoo, installed)
   #                   ^^^^^
   #  >=sys-libs/readline-6.3:0/0= required by (app-shells/bash-4.3_p48-r1:0/0::gentoo, installed)
-  "# 2017-11-26 Geaaru: temporary block"
-  ">=sys-libs/readline-7.0_p3"
-  ""
+  #"# 2017-11-26 Geaaru: temporary block"
+  #">=sys-libs/readline-7.0_p3"
+  #""
   ## [Filesystem baselayout and init scripts]
   # !!! copy /var/tmp/entropy/sys-apps/baselayout-2.3/cbah9K/image/etc/hosts -> /etc/hosts failed.
   "# 2017-12-30 Geaaru: Mask baselayout for override of /etc/hosts file"
@@ -78,10 +78,31 @@ SABAYON_EXTRA_USE=(
   "x11-libs/libxcb xkb"
 
   # This permit compilation of gnome-keyring inside LXC/LXD containers
-  # TODO: Setting of capabilities are been fixed on kernel >4.14
+  # TODO: Setting of capabilities are been fixed on kernel >=4.14
   "gnome-base/gnome-keyring -caps"
   "sys-libs/pam -filecaps"
 
+  # FIX:
+  # required by dev-libs/openssl-1.0.2n::gentoo[gmp]
+  # required by net-misc/curl-7.57.0::gentoo[ssl,curl_ssl_openssl]
+  # required by dev-util/cmake-3.10.1::gentoo
+  # required by sys-libs/compiler-rt-5.0.1::gentoo
+  # required by sys-devel/clang-runtime-5.0.1::gentoo[compiler-rt]
+  # required by sys-devel/clang-5.0.1::gentoo
+  # required by media-libs/mesa-17.3.1::gentoo[llvm,opencl,video_cards_r600,video_cards_radeon,video_cards_radeonsi]
+  # required by x11-libs/gtk+-3.22.19::gentoo[wayland]
+  # required by app-crypt/gcr-3.20.0::gentoo[gtk]
+  # required by app-crypt/pinentry-gnome-1.0.0-r2::sabayon-distro
+  # required by app-crypt/pinentry-1.0.0-r2::sabayon-distro[gnome-keyring]
+  # required by app-crypt/gnupg-2.2.4::gentoo
+  # required by @selected
+  # required by @world (argument)
+  "dev-libs/gmp static-libs"
+  "dev-libs/openssl static-libs"
+  "net-dns/libidn2 static-libs"
+
+  # This fix compilation problem about LRMI structure
+  "sys-apps/v86d x86emu"
 )
 
 SABAYON_EXTRA_ENV=(
@@ -107,9 +128,18 @@ SABAYON_EXTRA_ENV=(
 
   # Some problems with sandbox it seems present on sys-devel/gcc
   "sys-devel/gcc no-sandbox.conf"
+  "sys-devel/base-gcc no-sandbox.conf"
 
   "sys-libs/glibc no-sandbox.conf"
 )
+
+FILES_TO_REMOVE=(
+  "/var/log/emerge.log"
+  "/var/log/emerge-fetch.log"
+  "/var/tmp/ccache/*"
+  "/sabayon-stuff/"
+)
+
 
 sabayon_stage3_keywords () {
 
@@ -222,6 +252,13 @@ sabayon_stage3_phase1_review () {
       /etc/portage/package.env/01-sabayon.package.env
   done
 
+  SABAYON_STAGE3_PACKAGE_KEYWORDS=(
+    "sys-devel/gcc ~${SABAYON_ARCH}"
+    "sys-devel/base-gcc ~${SABAYON_ARCH}"
+  )
+
+  sabayon_stage3_keywords || return 1
+
   emerge -C $(qlist -IC dev-perl/) $(qlist -IC virtual/perl) \
     $(qlist -IC perl-core/) \
     app-crypt/pinentry \
@@ -245,24 +282,38 @@ sabayon_stage3_phase1_review () {
   local current_gcc=$(gcc-config -c)
   local current_gcc_version=$(echo $(gcc-config -c) | sed -e "s:$(uname -m)-pc-linux-gnu-::g")
 
-  # TODO: fix downgrade of gcc
-  emerge sys-devel/base-gcc::sabayon-distro --quiet-build || return 1
+  # FEATURES="-collision-protect" is needed when gcc installed version is same version
+  # of sabayon-distro.
+  FEATURES="-collision-protect -protect-owned" emerge -b \
+    sys-devel/base-gcc::sabayon-distro --quiet-build || return 1
 
   local sabayon_gcc=$(gcc-config -c)
+  local sabayon_gcc_version=$(echo ${sabayon_gcc} | sed -e "s:$(uname -m)-pc-linux-gnu-::g")
 
   gcc-config ${current_gcc} || return 1
 
   . /etc/profile
 
-  emerge sys-devel/gcc::sabayon-distro  --quiet-build || return 1
+  FEATURES="-collision-protect -protect-owned" emerge -b \
+    sys-devel/gcc::sabayon-distro  --quiet-build || return 1
+
+  if [ ${sabayon_gcc_version} != ${current_gcc_version} ] ; then
+    emerge --unmerge =sys-devel/gcc-${current_gcc_version}::gentoo || return 1
+    # If there is same version this is not needed.
+  fi
+
+  # Force reinstallation from package to initialize correctly gcc profile
+  # when gcc-version is same of the gentoo stage3
+  FEATURES="-collision-protect -protect-owned" emerge -K \
+    sys-devel/base-gcc::sabayon-distro sys-devel/gcc::sabayon-distro || return 1
 
   gcc-config ${sabayon_gcc} || return 1
 
   . /etc/profile
 
-  emerge --unmerge =sys-devel/gcc-${current_gcc_version}::gentoo || return 1
-
   USE="-doc" emerge --newuse --deep --with-bdeps=y -j @system @world || return 1
+
+  emerge ${emerge_opts} @preserved-rebuild || return 1
 
   sabayon_stage3_phase1 || return 1
 
@@ -319,13 +370,10 @@ sabayon_stage3_phase2 () {
 
 sabayon_stage3_clean () {
 
-  rm -rf /var/tmp/ccache/*
+  # Cleanup
+  rm -rf "${FILES_TO_REMOVE[@]}" || return 1
 
-  rm /var/log/emerge.log
-
-  rm -rf /sabayon-stuff
-
-  rm -rf /usr/portage/
+  sabayon_config_portage_empty 0 0 0 || return 1
 
   return 0
 }

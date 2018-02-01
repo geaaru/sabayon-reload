@@ -72,7 +72,7 @@ overlays_init () {
 
 build () {
 
-  sabayon_config_portage_empty 0 "-name '*eclass'" || return 1
+  sabayon_config_portage_empty 0 1 0 "-name '*eclass'" || return 1
 
   equo up || return 1
 
