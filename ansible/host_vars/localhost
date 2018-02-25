@@ -10,3 +10,4 @@ lxd_target_server: local
 lxd_skip_pull: 1
 repo_local: 1
 repo_dir: /repos
+docker_build_custom_opts: --force-rm --squash --rm

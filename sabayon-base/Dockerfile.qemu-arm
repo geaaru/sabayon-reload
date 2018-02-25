@@ -10,31 +10,27 @@ ADD qemu-arm /usr/bin/qemu-arm
 ARG SABAYON_ARCH=amd64
 ENV SABAYON_ARCH ${SABAYON_ARCH}
 
-# Add sabayon-stuff files
-ADD ./sabayon-stuff/ /sabayon-stuff
-RUN chmod a+x /sabayon-stuff/sabayon_base.sh
-
-# Add latest portage
-ADD ./portage-latest.tar.xz /usr
-
 # Set profile
 ARG GENTOO_PROFILE_NAME=/systemd
 ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
 
-RUN /sabayon-stuff/sabayon_base.sh init
+# Add sabayon-stuff files
+ADD ./sabayon-stuff/ /sabayon-stuff
+# Add latest portage
+ADD ./portage-latest.tar.xz /usr
 
 ARG CACHEBUST=1
-RUN /sabayon-stuff/sabayon_base.sh phase1
-
-RUN /sabayon-stuff/sabayon_base.sh phase2
+RUN chmod a+x /sabayon-stuff/sabayon_base.sh && \
+      /sabayon-stuff/sabayon_base.sh init && \
+      /sabayon-stuff/sabayon_base.sh phase1 && \
+      /sabayon-stuff/sabayon_base.sh phase2 && \
+      rm -rf /sabayon-stuff /usr/portage/
 
 # Set environment variables.
 ENV HOME /root
 
 # Define working directory.
 WORKDIR /root
-
-RUN rm -rf /sabayon-stuff /usr/portage/
 
 # Define default command.
 CMD ["/bin/bash"]

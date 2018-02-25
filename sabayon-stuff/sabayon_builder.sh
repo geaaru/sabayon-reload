@@ -61,6 +61,15 @@ FILES_TO_REMOVE=(
    "/.zcompdump"
    "/var/log/emerge.log"
    "/var/log/emerge-fetch.log"
+
+    # Remove LDAP keys
+    "/etc/openldap/ssl/ldap.pem"
+    "/etc/openldap/ssl/ldap.key"
+    "/etc/openldap/ssl/ldap.csr"
+    "/etc/openldap/ssl/ldap.crt"
+
+    # remove SSH keys
+    "/etc/ssh/*_key*"
 )
 
 PACKAGES_TO_ADD=(
@@ -84,14 +93,6 @@ PACKAGES_TO_ADD=(
     "app-admin/enman"
     "sys-devel/distcc"
 
-    # Remove LDAP keys
-    "/etc/openldap/ssl/ldap.pem"
-    "/etc/openldap/ssl/ldap.key"
-    "/etc/openldap/ssl/ldap.csr"
-    "/etc/openldap/ssl/ldap.crt"
-
-    # remove SSH keys
-    "/etc/ssh/*_key*"
 )
 
 
@@ -103,7 +104,7 @@ sabayon_builder_init () {
 
   sabayon_init_portage || return 1
 
-  sabayon_config_portage_licenses 1 || return 1
+  sabayon_config_portage_empty 1 0 1 || return 1
 
   # Copy depcheck to /usr/local/bin
   cp /sabayon-stuff/ext/depcheck /usr/local/bin || return 1

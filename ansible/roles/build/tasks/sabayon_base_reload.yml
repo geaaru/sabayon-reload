@@ -28,6 +28,7 @@
     - name: "{{ current_build }}: Create image {{ docker_image_name }}"
       command: >
         docker build -t {{ docker_image_name }}
+        --force-rm
         --build-arg USER={{ docker_user }}
         --build-arg CACHEBUST={{ current_date }} .
       args:

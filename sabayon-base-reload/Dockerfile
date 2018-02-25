@@ -15,7 +15,6 @@ ADD ./portage-latest.tar.xz /usr
 
 # Add sabayon-stuff files
 ADD ./sabayon-stuff/ /sabayon-stuff
-RUN chmod a+x /sabayon-stuff/sabayon_base.sh
 
 ARG SABAYON_REPOS_NAME=sabayon-reload
 ENV SABAYON_REPOS_NAME ${SABAYON_REPOS_NAME}
@@ -29,20 +28,19 @@ ENV SABAYON_REPOS_PATH ${SABAYON_REPOS_PATH}
 ARG SABAYON_REPOS_PROTO=file
 ENV SABAYON_REPOS_PROTO ${SABAYON_REPOS_PROTO}
 
-RUN /sabayon-stuff/sabayon_base.sh init
-
 ARG CACHEBUST=1
-RUN /sabayon-stuff/sabayon_base.sh phase1
-
-RUN /sabayon-stuff/sabayon_base.sh phase2
+RUN chmod a+x /sabayon-stuff/sabayon_base.sh && \
+      /sabayon-stuff/sabayon_base.sh init && \
+      /sabayon-stuff/sabayon_base.sh phase1 && \
+      /sabayon-stuff/sabayon_base.sh phase2 && \
+      /sabayon-stuff/sabayon_base.sh clean && \
+      rm -rf /repos/
 
 # Set environment variables.
 ENV HOME /root
 
 # Define working directory.
 WORKDIR /root
-
-RUN /sabayon-stuff/sabayon_base.sh clean
 
 # Define default command.
 CMD ["/bin/bash"]

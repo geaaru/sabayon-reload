@@ -111,7 +111,7 @@ PACKAGE_TO_ASSIMILATE=(
 
 sabayon_base_init () {
 
-  sabayon_config_portage_licenses || return 1
+  sabayon_config_portage_empty 1 0 1 || return 1
 
   sabayon_config_default_repos || return 1
 
@@ -124,7 +124,7 @@ sabayon_base_init () {
 
 sabayon_base_init_rebuild () {
 
-  sabayon_config_portage_licenses || return 1
+  sabayon_config_portage_empty 1 0 1 || return 1
 
   echo "Creating repos file for ${SABAYON_REPOS_NAME}..."
   sabayon_create_repofile || return 1

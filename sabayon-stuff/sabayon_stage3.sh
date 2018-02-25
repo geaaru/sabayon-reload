@@ -10,6 +10,14 @@ SABAYON_STAGE3_PACKAGE_KEYWORDS=(
 SABAYON_STAGE3_PACKAGE_USE=(
   "dev-lang/python sqlite -tk"
   "sys-apps/file python"
+
+  # - app-text/asciidoc-8.6.10::gentoo USE="-examples -graphviz -highlight -test" ABI_X86="(64)" PYTHON_SINGLE_TARGET="(-pypy) -python2_7" PYTHON_TARGETS="python2_7 (-pypy)"
+  #
+  # The following REQUIRED_USE flag constraints are unsatisfied:
+  #     exactly-one-of ( python_single_target_pypy python_single_target_python2_7 )
+  #   The above constraints are a subset of the following complete expression:
+  # exactly-one-of ( python_single_target_pypy python_single_target_python2_7 ) python_single_target_pypy? ( python_targets_pypy ) python_single_target_python2_7? ( python_targets_python2_7 )
+  "app-text/asciidoc python_single_target_python2_7"
 )
 SABAYON_STAGE3_KEYWORDS_FILE="${SABAYON_STAGE3_KEYWORDS_FILE:-01-sabayon.package.keywords}"
 SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-01-sabayon.package.use}"
@@ -103,6 +111,7 @@ SABAYON_EXTRA_USE=(
 
   # This fix compilation problem about LRMI structure
   "sys-apps/v86d x86emu"
+
 )
 
 SABAYON_EXTRA_ENV=(

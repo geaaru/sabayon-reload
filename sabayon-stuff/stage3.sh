@@ -23,7 +23,9 @@ sabayon_stage3_init () {
     sabayon_set_makeopts || return 1
   fi
 
-  sabayon_set_python_targets || return 1
+  # For compile dev-util/meson required by systemd
+  # is needed python3_5
+  sabayon_set_python_targets "python2_7 python3_5" || return 1
 
   sabayon_set_python_single_target || return 1
 

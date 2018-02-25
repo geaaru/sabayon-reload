@@ -23,6 +23,7 @@
     - name: "{{ current_build }}: Create image {{ docker_image_name }}"
       command: >
         docker build -t {{ docker_image_name }}
+        {{ docker_build_custom_opts }}
         --build-arg USER={{ docker_user }}
         --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
         --build-arg CACHEBUST={{ current_date }}

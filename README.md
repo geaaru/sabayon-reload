@@ -14,10 +14,6 @@ NOTE: It's under development. Not completed.
 
 It is based on Sabayon Dockerfile written by mudler and Sabayon Team.
 
-## The Story
-
-TBD
-
 ## Process steps
 
 For now only for amd64 platform.
@@ -137,6 +133,7 @@ In particular, under localhost host variable file it is possible customize these
 | staging_dir | ./staging | Directory used by sabayon-lxd-imagebuilder for convert docker image, etc. |
 | lxd_target_server | local | Target LXD Server where upload images |
 | lxd_skip_pull | 1 | Skip pull from docker image on create LXD images (1) or not (0). Normally, is set to 1 when images are created locally. |
+| docker_build_custom_opts | --force-rm --squash --rm | Additional option for docker build phases. By default use --squash that require experimental feature on Docker. |
 
 
 ## Test Suites

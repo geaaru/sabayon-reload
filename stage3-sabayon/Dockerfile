@@ -34,10 +34,6 @@ ENV GENTOO_PROFILE_NAME ${GENTOO_PROFILE_NAME}
 
 ARG CACHEBUST=1
 
-# Add sabayon-stuff files (from trigger)
-# ADD ./sabayon-stuff/ /sabayon-stuff
-RUN chmod a+x /sabayon-stuff/sabayon_stage3.sh
-
 # Add latest portage (from trigger)
 #ADD ./portage-latest.tar.xz /usr
 
@@ -45,7 +41,8 @@ RUN chmod a+x /sabayon-stuff/sabayon_stage3.sh
 # * Install equo and execute equo rescue (phase1)
 # * Prepare portage environment for compilation (phase2)
 # * Clean compilation stuff
-RUN /sabayon-stuff/sabayon_stage3.sh init && \
+RUN chmod a+x /sabayon-stuff/sabayon_stage3.sh && \
+      /sabayon-stuff/sabayon_stage3.sh init && \
       /sabayon-stuff/sabayon_stage3.sh phase1 && \
       /sabayon-stuff/sabayon_stage3.sh phase2 && \
       /sabayon-stuff/sabayon_stage3.sh clean

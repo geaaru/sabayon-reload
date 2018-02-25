@@ -24,7 +24,6 @@ ENV LC_ALL=en_US.utf8
 
 ENV TERM=linux
 
-RUN /sabayon-stuff/stage3.sh init
 # Add trigger for children images
 ONBUILD ADD ./sabayon-stuff/ /sabayon-stuff
 ONBUILD ADD ./portage-latest.tar.xz /usr
@@ -32,8 +31,8 @@ ONBUILD ADD ./portage-latest.tar.xz /usr
 # Set GENTOO_SKIP_SYNC VARIABLE
 # See bug: https://github.com/moby/moby/issues/34494
 # For now use default value from commons.sh
-#ARG GENTOO_SKIP_SYNC=0
-#ONBUILD ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
+ARG GENTOO_SKIP_SYNC=0
+ENV GENTOO_SKIP_SYNC ${GENTOO_SKIP_SYNC}
 
 # Set profile
 #ARG GENTOO_PROFILE_NAME=/systemd
@@ -44,8 +43,8 @@ ARG SABAYON_ARCH=amd64
 ENV SABAYON_ARCH ${SABAYON_ARCH}
 
 ARG CACHEBUST=1
-RUN /sabayon-stuff/stage3.sh rebuild
-
-RUN rm -rf /sabayon-stuff /usr/portage/
+RUN /sabayon-stuff/stage3.sh init && \
+      /sabayon-stuff/stage3.sh rebuild && \
+      rm -rf /sabayon-stuff /usr/portage/
 
 CMD ["/bin/bash"]

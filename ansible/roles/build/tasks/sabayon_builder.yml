@@ -6,7 +6,7 @@
   vars:
     current_build: "sabayon-builder-amd64"
     current_arch: 'amd64'
-    current_builddir: "{{ builder_rootdir }}/sabayon-builder-amd64"
+    current_builddir: "{{ builder_rootdir }}/sabayon-builder"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
     docker_image_name: "{{ docker_user }}/sabayon-builder-amd64"
   block:
@@ -24,6 +24,7 @@
     - name: "{{ current_build }}: Create image {{ docker_image_name }}"
       command: >
         docker build -t {{ docker_image_name }}
+        {{ docker_build_custom_opts }}
         --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
         --build-arg SABAYON_SKIP_SYNC={{ sabayon_skip_sync }}
         --build-arg USER={{ docker_user }}

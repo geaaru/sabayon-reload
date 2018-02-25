@@ -56,7 +56,7 @@ sabayon_spinbase_init () {
     equo up || return 1
   fi
 
-  sabayon_config_portage_licenses || return 1
+  sabayon_config_portage_empty 1 0 1 || return 1
 
   return 0
 }

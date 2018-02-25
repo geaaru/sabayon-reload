@@ -577,35 +577,6 @@ sabayon_config_portage_empty () {
   return 0
 }
 
-sabayon_config_portage_licenses () {
-
-  local only_creation_file=${1:-0}
-
-  # Maintains only licenses directory
-  #   ! -name '*profiles' \
-    # Metadata is needed to avoid this warning:
-  #!!! Repository 'x-portage' is missing masters attribute in '/usr/portage/metadata/layout.conf'
-  #!!! Set 'masters = gentoo' in this file for future compatibility
-
-  if [ ${only_creation_file} -eq 0 ] ; then
-
-    local rmdirs=$(find ${PORTDIR} -maxdepth 1 -type d \
-      ! -name '*metadata' \
-      ! -path ${PORTDIR} ! -name '*licenses')
-
-    for i in ${rmdirs} ; do
-      echo "Removing dir ${i} ..."
-      rm -rf ${i}
-    done
-
-  fi
-
-  # Accept all licenses
-  ls ${PORTDIR}/licenses -1 | xargs -0 > /etc/entropy/packages/license.accept || return 1
-
-  return 0
-}
-
 sabayon_config_default_repos () {
 
   mv /etc/entropy/repositories.conf.d/entropy_sabayonlinux.org.example \
