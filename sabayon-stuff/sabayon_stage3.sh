@@ -24,11 +24,6 @@ SABAYON_STAGE3_USE_FILE="${SABAYON_STAGE3_USE_FILE:-01-sabayon.package.use}"
 SABAYON_EQUO_DIR="/var/lib/entropy/client/database/"
 
 SABAYON_EXTRA_MASK=(
-  # To fix on package.keywords
-  "# 2017-11-26 Geaaru: block installation of masked version"
-  ">=dev-lang/perl-5.26.9999"
-  ""
-
   # It seems that this is not masked
   "# 2017-11-26 Geaaru: Use sabayon version"
   "app-crypt/pinentry::gentoo"
@@ -36,6 +31,14 @@ SABAYON_EXTRA_MASK=(
 
   "# 2017-11-26 Geaaru: Use sabayon version"
   "sys-devel/gcc::gentoo"
+  ""
+
+  "# 2018-04-02 Geaaru: Block unstable fontconfig that require freetype 2.9"
+  ">=media-libs/fontconfig-2.13.0"
+  ""
+
+  "# 2018-04-04 Geaaru: Block unstable fontconfig that require freetype 2.9"
+  ">=x11-libs/pango-1.42.0"
   ""
 
   "# 2017-12-16 Geaaru: Mask cryptsetup for linking problems"
@@ -57,6 +60,11 @@ SABAYON_EXTRA_MASK=(
   "# 2017-12-30 Geaaru: Mask baselayout for override of /etc/hosts file"
   "sys-apps/baselayout::gentoo"
   ""
+
+  "# 20180-04-07 Geaaru: Use sabayon version"
+  "dev-vcs/git::gentoo"
+  ""
+
 )
 
 SABAYON_EXTRA_USE=(
@@ -140,6 +148,10 @@ SABAYON_EXTRA_ENV=(
   "sys-devel/base-gcc no-sandbox.conf"
 
   "sys-libs/glibc no-sandbox.conf"
+  "sys-libs/glibc no-sandbox.conf"
+
+  # SYS_PTRACE problem"
+  "sys-libs/ncurses no-sandbox.conf"
 )
 
 FILES_TO_REMOVE=(
@@ -274,6 +286,8 @@ sabayon_stage3_phase1_review () {
     sys-apps/texinfo \
     sys-apps/baselayout \
     dev-python/requests \
+    dev-vcs/git app-text/po4a \
+    media-gfx/graphite2 \
     app-eselect/eselect-python  || return 1
 
   for ((i = 0 ; i < ${#SABAYON_EXTRA_MASK[@]} ; i++)) ; do
@@ -281,8 +295,8 @@ sabayon_stage3_phase1_review () {
       /etc/portage/package.mask/00-tmp.package.mask
   done
 
-  emerge ${emerge_opts} dev-perl/XML-Parser \
-    $(qgrep -JN sys-libs/readline | cut -f1 -d":" | uniq | sed -e 's:^:=:g' ) || return 1
+  emerge ${emerge_opts} dev-perl/XML-Parser sys-apps/util-linux \
+    $(qgrep -JN sys-libs/readline | cut -f1 -d":" | uniq | sed -e 's:^:=:g' | grep -v "util-linux" ) || return 1
 
   # This fix bug with /etc/init.d/functions.sh
   emerge sys-devel/gcc-config sys-apps/gentoo-functions -j -u || return 1

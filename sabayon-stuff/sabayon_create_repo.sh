@@ -12,6 +12,7 @@ SABAYON_STAGE3_PACKAGE_KEYWORDS=(
   "app-admin/matter ~${SABAYON_ARCH}"
   "app-misc/sabayon-version ~${SABAYON_ARCH}"
 )
+SABAYON_EMERGE_OPTS="${SABAYON_EMERGE_OPTS:-}"
 
 SABAYON_EXTRA_ENV=(
   # Fix compilation of inside docker
@@ -75,10 +76,9 @@ sabayon_create_repo_phase1 () {
   mkdir -p /etc/portage/patches/sys-apps/entropy-server
   cp /sabayon-stuff/patches/eit_fix_ask_commit.patch \
     /etc/portage/patches/sys-apps/entropy-server
+  cp /sabayon-stuff/patches/eit_fix_ask_inject.patch \
+    /etc/portage/patches/sys-apps/entropy-server
 
-  # TEMPORARY: Apply patch to sabayon-version to force gcc 6.4.0
-  sed -e 's:GCC_VER="5.4.0":GCC_VER="6.4.0":g' -i \
-    /var/lib/layman/sabayon-distro/app-misc/sabayon-version/sabayon-version-18.02.ebuild
   ebuild /var/lib/layman/sabayon-distro/app-misc/sabayon-version/sabayon-version-18.02.ebuild digest
 
   for ((i = 0 ; i < ${#SABAYON_EXTRA_ENV[@]} ; i++)) ; do
@@ -100,7 +100,7 @@ sabayon_create_repo_compile () {
 
     echo "Emerging ${pkgs} packages..."
 
-    emerge ${pkgs} ${emerge_opts} || return 1
+    emerge ${pkgs} ${SABAYON_EMERGE_OPTS} ${emerge_opts} || return 1
 
     echo -9 | equo conf update || return 1
 

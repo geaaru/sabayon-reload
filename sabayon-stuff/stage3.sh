@@ -105,29 +105,31 @@ sabayon_stage3_arm_rebuildall () {
   local ufile="/etc/portage/package.use/00-gentoo-arm-stage3.package.use"
   local packages_use=(
     "sys-apps/util-linux -systemd -build -udev"
+    "sys-libs/gdbm berkdb"
   )
 
   sabayon_init_portage || return 1
 
   echo "Unmerge eudev not compliant with systemd (default package on latest Gentoo image)"
   emerge -C eudev virtual/udev sys-apps/openrc \
-    virtual/perl-ExtUtils-ParseXS dev-perl/XML-Parser \
-    virtual/perl-CPAN-Meta \
-    perl-core/File-Temp virtual/perl-CPAN-Meta-YAML \
-    virtual/perl-ExtUtils-Install \
-    virtual/perl-File-Temp virtual/perl-Test-Harness \
-    virtual/perl-Getopt-Long virtual/perl-Text-ParseWords \
-    virtual/perl-ExtUtils-Manifest virtual/perl-ExtUtils-CBuilder \
-    sys-apps/texinfo virtual/perl-Module-Metadata \
-    virtual/perl-Parse-CPAN-Meta virtual/perl-Perl-OSType \
-    dev-perl/TermReadKey virtual/perl-JSON-PP \
-    virtual/perl-File-Spec virtual/perl-Perl-OSType \
-    app-eselect/eselect-python virtual/perl-CPAN-Meta || return 1
+    $(qlist -IC dev-perl/) $(qlist -IC virtual/perl) \
+    $(qlist -IC perl-core/) \
+    app-text/openjade \
+    dev-lang/perl \
+    sys-apps/texinfo \
+    app-text/xmlto \
+    app-admin/eselect \
+    dev-lang/python-exec \
+    app-eselect/eselect-python || return 1
 
   mkdir -p /etc/portage/package.use/
   for ((i = 0 ; i < ${#packages_use[@]} ; i++)) ; do
     echo ${packages_use[${i}]} >> ${ufile}
   done
+
+  emerge ${emerge_opts} dev-perl/XML-Parser sys-apps/util-linux \
+    app-shells/bash \
+    $(qgrep -JN sys-libs/readline | cut -f1 -d":" | uniq | sed -e 's:^:=:g' | grep -v "util-linux" ) || return 1
 
   echo "Emerge @systemd && @world"
   # sysv-utils needed for set /sbin/init as systemd daemon
