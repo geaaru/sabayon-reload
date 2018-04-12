@@ -20,6 +20,9 @@ sed -i -e 's:#append-cflags.*:append-cflags "-I/usr/include":g' \
   ${SABAYON_LAYMAN}/sys-apps/v86d/v86d-${v86d_version}.ebuild
 ebuild ${SABAYON_LAYMAN}/sys-apps/v86d/v86d-${v86d_version}.ebuild digest
 
+# Fix use flag for grup
+echo "sys-boot/grub libzfs" >> /etc/portage/package.use/00-tmp.package.use
+
 echo "End pre-script"
 
 exit 0
