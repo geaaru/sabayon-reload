@@ -1,13 +1,14 @@
 ---
 # Author:  Geaaru, geaaru@gmail.com
-# Description: Script for build stage3-sabayon-reload image
+# Description: Script for build sabayon-molecules image
 
-- name: "Stage3 Sabayon Systemd Reload {{ current_arch }}"
+- name: "Sabayon Molecues {{ current_arch }}"
   vars:
-    current_build: "stage3-sabayon-{{ current_arch }}"
-    current_builddir: "{{ builder_rootdir }}/stage3-sabayon"
+    current_build: "sabayon-molecules-{{ current_arch }}"
+    current_builddir: "{{ builder_rootdir }}/sabayon-molecules"
     current_date: "{{ lookup('pipe', 'date +%Y%m%d') }}"
-    docker_image_name: "{{ docker_user }}/stage3-sabayon-reload-{{ current_arch }}"
+    docker_image_name: "{{ docker_user }}/sabayon-molecules-{{ current_arch }}"
+    molecules_git_opts: "-b {{ molecules_version }}"
   block:
 
     - name: "{{ current_build }}: Check for updated portage tarball"
@@ -25,15 +26,12 @@
         docker build -t {{ docker_image_name }}
         {{ docker_build_custom_opts }}
         --build-arg USER={{ docker_user }}
-        --build-arg GENTOO_SKIP_SYNC={{ gentoo_skip_sync }}
-        --build-arg CACHEBUST={{ current_date }}
-        --build-arg SABAYON_REBUILD=1
-        --build-arg GENTOO_PROFILE_NAME="/sabayon"
-        --build-arg SABAYON_PROFILE_TARGETS="/systemd /sabayon/amd64"
-        .
+        --build-arg SABAYON_MOLECULES_GITURL={{ molecules_git_url }}
+        --build-arg SABAYON_MOLECULES_GIT_OPTS="{{ molecules_git_opts }}"
+        --build-arg CACHEBUST={{ current_date }} .
       args:
         chdir: "{{ current_builddir }}"
-      register: gentoo_state3_build
+      register: sabayon_molecules_build
 
     - name: "{{ current_build }}: Build result"
-      debug: var=gentoo_state3_build.stdout_lines
+      debug: var=sabayon_molecules_build.stdout_lines

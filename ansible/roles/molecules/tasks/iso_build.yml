@@ -1,0 +1,9 @@
+---
+
+# Author: Geaaru, gaearu@gmail.com
+# Description: Build ISO image
+#
+
+- name: "{{ current_build }}: Create Sabayon ISO"
+  vars:
+

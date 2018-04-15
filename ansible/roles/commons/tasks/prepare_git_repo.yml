@@ -1,0 +1,19 @@
+---
+
+#
+# Author: Geaaru, geaaru@gmail.com
+# Description: Create/Update or Change a GIT repository.
+#
+# Required arguments:
+#   * git_url
+#   * git_dest
+#   * git_version: tag or branch
+
+- name: "{{ current_build }}: Clone or Update Repository {{ git_url }}"
+  git:
+    repo: "{{ git_url }}"
+    dest: "{{ git_dest }}"
+    clone: yes
+    update: yes
+    version: "{{ git_version }}"
+

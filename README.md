@@ -134,6 +134,11 @@ In particular, under localhost host variable file it is possible customize these
 | lxd_target_server | local | Target LXD Server where upload images |
 | lxd_skip_pull | 1 | Skip pull from docker image on create LXD images (1) or not (0). Normally, is set to 1 when images are created locally. |
 | docker_build_custom_opts | --force-rm --squash --rm | Additional option for docker build phases. By default use --squash that require experimental feature on Docker. |
+| molecules_dir | ../molecules | Path of directory where Sabayon molecules data are available |
+| molecules_git_url | https://github.com/geaaru/molecules.git | Git URL of Sabayon molecule repository |
+| molecules_version | scripts-review | Branch or Tag to use. |
+| molecules_logfile | ${HOME}/molecules.log | Set logfile of Sabayon ISO build phase. |
+| molecules_docker_src_image | sabayon/spinbase-amd64:latest | Define Docker image used as base for build Sabayon ISO |
 
 
 ## Test Suites

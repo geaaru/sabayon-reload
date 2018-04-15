@@ -24,6 +24,7 @@
             - amd64_sabayon_create_repo
             - amd64_sabayon_base_reload
             - amd64_sabayon_check_overlay
+            - amd64_sabayon_molecules
           include_role:
             name: commons
             tasks_from: check_qemu
@@ -92,6 +93,13 @@
           include_role:
             name: build
             tasks_from: sabayon_check_overlay
+
+        - name: Build Sabayon Molecules
+          tags:
+            - amd64_sabayon_molecules
+          include_role:
+            name: build
+            tasks_from: sabayon_molecules
 
     - name: Build ARM-7A image
       tags:

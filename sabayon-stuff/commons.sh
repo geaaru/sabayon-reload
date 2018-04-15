@@ -344,6 +344,26 @@ sabayon_add_profile4target () {
   return 0
 }
 
+sabayon_init_env () {
+
+  local mirror_name=${1:-sabayonlinux.org}
+
+  if [[ -z "${SABAYON_SKIP_MIRRORSORT}" || "${SABAYON_SKIP_MIRRORSORT}" == "0" ]] ; then
+    equo repo mirrorsort ${mirror_name}
+  fi
+
+  if [[ -z "${SABAYON_SKIP_SYNC}" || "${SABAYON_SKIP_SYNC}" == "0" ]] ; then
+    equo up || return 1
+  fi
+
+  if [[ -z "${SABAYON_SKIP_UPGRADE}" || "${SABAYON_SKIP_UPGRADE}" == "0" ]] ; then
+    ETP_NONINTERACTIVE=1 equo u || return 1
+    echo -5 | equo conf update || return 1
+  fi
+
+  return 0
+}
+
 sabayon_init_portage () {
 
   local skip_sync=${GENTOO_SKIP_SYNC:-1}
@@ -351,10 +371,6 @@ sabayon_init_portage () {
   if [ ${skip_sync} -eq 0 ] ; then
     emerge --sync || return 1
   fi
-
-  # Wait to a fix about this on gentoo upstream
-  echo "Remove openrc from base packages"
-  sed -e 's/*sys-apps\/openrc//g' -i  /usr/portage/profiles/base/packages || return 1
 
   sabayon_build_info
 

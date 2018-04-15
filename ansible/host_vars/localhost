@@ -11,3 +11,13 @@ lxd_skip_pull: 1
 repo_local: 1
 repo_dir: /repos
 docker_build_custom_opts: --force-rm --squash --rm
+molecules_dir: ../molecules
+molecules_git_url: https://github.com/geaaru/molecules.git
+molecules_version: scripts-review
+molecules_logfile: ${HOME}/molecules.log
+molecules_opts: --skip-email --skip-dev --image gnome
+# molecules_docker_src_image: sabayon/spinbase-amd64:latest
+# molecules_kernel_version: 4.14
+molecules_enman_repos:
+  - geaaru
+  - prova

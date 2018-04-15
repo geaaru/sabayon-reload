@@ -1,0 +1,23 @@
+---
+
+# Author: Geaaru, geaaru@gmail.com
+# Description: Playbook for build Sabayon ISO images.
+
+- hosts:
+    - all
+  tasks:
+
+    # Create/Update GIT Sabayon Molecules Repos
+    - name: Molecules Sabayon GIT Repository
+      tags:
+        - sync_molecules_repo
+      vars:
+        git_url: "{{ molecules_git_url }}"
+        git_dest: "{{ molecules_dir }}"
+        git_version: "{{ molecules_version }}"
+        current_build: "Sync molecules repos"
+      include_role:
+        name: commons
+        tasks_from: prepare_git_repo
+
+

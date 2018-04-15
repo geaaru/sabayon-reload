@@ -52,11 +52,9 @@ sabayon_spinbase_init () {
   [ ! -e /boot/grub ] && \
     mkdir -p /boot/grub || return 1
 
-  if [[ -z "${SABAYON_SKIP_SYNC}" || "${SABAYON_SKIP_SYNC}" == "1" ]] ; then
-    equo up || return 1
-  fi
-
   sabayon_config_portage_empty 1 0 1 || return 1
+
+  sabayon_init_env
 
   return 0
 }
