@@ -40,6 +40,8 @@ PACKAGES_TO_ADD=(
   "app-emulation/docker"
   "app-emulation/docker-companion"
   "sys-process/tini"
+  # For isohybrid
+  "sys-boot/syslinux"
 )
 
 FILES_TO_REMOVE=(
