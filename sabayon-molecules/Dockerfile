@@ -20,6 +20,8 @@ ARG SABAYON_MOLECULES_GITURL=https://github.com/Sabayon/molecules.git
 ENV SABAYON_MOLECULES_GITURL=${SABAYON_MOLECULES_GITURL}
 ARG SABAYON_MOLECULES_GIT_OPTS=
 ENV SABAYON_MOLECULES_GIT_OPTS=${SABAYON_MOLECULES_GIT_OPTS}
+ARG SABAYON_MOLECULES_ENVFILE=
+ENV SABAYON_MOLECULES_ENVFILE=${SABAYON_MOLECULES_ENVFILE}
 
 ARG CACHEBUST=1
 RUN chmod a+x /sabayon-stuff/sabayon_molecules.sh && \
@@ -34,7 +36,7 @@ ENV HOME ${SABAYON_MOLECULES_DIR}
 WORKDIR ${SABAYON_MOLECULES_DIR}
 
 # Docker service requirement
-VOLUME ["/sys/fs/cgroup"]
+#VOLUME ["/sys/fs/cgroup"]
 
 # Define default command.
 ENTRYPOINT ["/usr/bin/tini", "-s", "--", "/sabayon-stuff/sabayon_molecules.sh", "run"]

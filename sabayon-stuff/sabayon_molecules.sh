@@ -9,6 +9,8 @@ SABAYON_MOLECULES_DIR=${SABAYON_MOLECULES_DIR:-/sabayon}
 SABAYON_MOLECULES_CHROOTS=${SABAYON_MOLECULES_CHROOTS:-}
 SABAYON_MOLECULES_SOURCES=${SABAYON_MOLECULES_SOURCES:-}
 SABAYON_MOLECULES_ISO=${SABAYON_MOLECULES_ISO:-}
+SABAYON_MOLECULES_ENVFILE=${SABAYON_MOLECULES_ENVFILE:-$(pwd)/confs/iso_build.env}
+SABAYON_MOLECULES_SYSTEMD_MODE=${SABAYON_MOLECULES_SYSTEMD_MODE:-0}
 
 sabayon_molecules_info () {
 
@@ -20,9 +22,14 @@ sabayon_molecules_info () {
   fi
 
   echo "
-SABAYON_MOLECULES_GITURL   = ${SABAYON_MOLECULES_GITURL}
-SABAYON_MOLECULES_GIT_OPTS = ${SABAYON_MOLECULES_GIT_OPTS}
-SABAYON_MOLECULES_DIR      = ${SABAYON_MOLECULES_DIR}
+SABAYON_MOLECULES_GITURL       = ${SABAYON_MOLECULES_GITURL}
+SABAYON_MOLECULES_GIT_OPTS     = ${SABAYON_MOLECULES_GIT_OPTS}
+SABAYON_MOLECULES_DIR          = ${SABAYON_MOLECULES_DIR}
+SABAYON_MOLECULES_ENVFILE      = ${SABAYON_MOLECULES_ENVFILE}
+SABAYON_MOLECULES_SYSTEMD_MODE = ${SABAYON_MOLECULES_SYSTEMD_MODE}
+SABAYON_MOLECULES_ISO          = ${SABAYON_MOLECULES_ISO}
+SABAYON_MOLECULES_CHROOTS      = ${SABAYON_MOLECULES_CHROOTS}
+SABAYON_MOLECULES_SOURCES      = ${SABAYON_MOLECULES_SOURCES}
 ${info_args}
 "
   return 0
@@ -116,22 +123,30 @@ sabayon_molecules_run () {
   local systemctl=/usr/bin/systemctl
   local journaltcl=/usr/bin/journalctl
 
+  # Load environment variables
+  if [ -e "${SABAYON_MOLECULES_ENVFILE}" ] ; then
+    echo "Sourcing file ${SABAYON_MOLECULES_ENVFILE}..."
+    source ${SABAYON_MOLECULES_ENVFILE}
+  fi
+
   sabayon_molecules_info || return 1
 
-  sabayon_molecules_echo "Starting SYSTEMD"
-  exec /sbin/init --system --show-status=true &
+  if [ ${SABAYON_MOLECULES_SYSTEMD_MODE} -eq 1 ] ; then
+    sabayon_molecules_echo "Starting SYSTEMD"
+    exec /sbin/init --system --show-status=true &
 
-  sabayon_molecules_echo "Waiting for systemd starting...sleep 5"
-  sleep 5
+    sabayon_molecules_echo "Waiting for systemd starting...sleep 5"
+    sleep 5
 
-  sabayon_molecules_echo "FAILED SYSTEMD SERVICES"
-  $systemctl --failed || return 1
+    sabayon_molecules_echo "FAILED SYSTEMD SERVICES"
+    $systemctl --failed || return 1
 
-  sabayon_molecules_echo "Systemd Services Status"
-  $systemctl status || return 1
+    sabayon_molecules_echo "Systemd Services Status"
+    $systemctl status || return 1
 
-  sabayon_molecules_echo "JOURNALCTL BOOTSTRAP LOG"
-  $journaltcl -b --no-pager
+    sabayon_molecules_echo "JOURNALCTL BOOTSTRAP LOG"
+    $journaltcl -b --no-pager
+  fi
 
   sabayon_molecules_echo \
     "Clone repository ${SABAYON_MOLECULES_GITURL} to ${SABAYON_MOLECULES_DIR}"
@@ -182,8 +197,8 @@ case $1 in
     sabayon_molecules_clean
     ;;
   *)
-  echo "Use init|phase1|clean"
-  exit 1
+    echo "Use init|phase1|clean"
+    exit 1
 esac
 
 exit $?
