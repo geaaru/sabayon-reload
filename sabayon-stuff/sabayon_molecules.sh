@@ -11,6 +11,7 @@ SABAYON_MOLECULES_SOURCES=${SABAYON_MOLECULES_SOURCES:-}
 SABAYON_MOLECULES_ISO=${SABAYON_MOLECULES_ISO:-}
 SABAYON_MOLECULES_ENVFILE=${SABAYON_MOLECULES_ENVFILE:-$(pwd)/confs/iso_build.env}
 SABAYON_MOLECULES_SYSTEMD_MODE=${SABAYON_MOLECULES_SYSTEMD_MODE:-0}
+SABAYON_MOLECULES_POSTSCRIPT=${SABAYON_MOLECULES_POSTSCRIPT:-}
 
 sabayon_molecules_info () {
 
@@ -179,6 +180,11 @@ sabayon_molecules_run () {
   sabayon_molecules_echo "START iso_build.sh script."
   ${SABAYON_MOLECULES_DIR}/scripts/iso_build.sh $@ || return 1
   sabayon_molecules_echo "END iso_build.sh script."
+
+  if [ -e "${SABAYON_MOLECULES_POSTSCRIPT}" ] ; then
+    echo "Sourcing POST script file ${SABAYON_MOLECULES_POSTSCRIPT}..."
+    source ${SABAYON_MOLECULES_POSTSCRIPT}
+  fi
 
   return 0
 }
