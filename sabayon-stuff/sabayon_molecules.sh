@@ -177,9 +177,13 @@ sabayon_molecules_run () {
 # NOTE: loop is needed for mount image
 #docker run --init --device /dev/fuse --cap-add=MKNOD   --tmpfs /run --tmpfs /tmp -v /sdpool/molecules-chroots:/chroots -v /sdpool/molecules-sources:/sources -v /sdpool/iso:/iso  -v $(pwd)/sabayon_molecules.sh:/sabayon-stuff/sabayon_molecules.sh -v /sys/fs/cgroup:/sys/fs/cgroup:ro   --rm   --name test2 --cap-add=SYS_PTRACE --cap-add=SYS_ADMIN --cap-add=NET_ADMIN  --device=/dev/loop-control:/dev/loop-control --device=/dev/loop0:/dev/loop0 -e COLUMNS=200 -e LINES=400 -e SABAYON_MOLECULES_CHROOTS=/chroots -e SABAYON_MOLECULES_SOURCES=/sources -e SABAYON_MOLECULES_ISO=/iso  geaaru/sabayon-molecules-amd64
 
+  local date_end=""
+  local date_start=$(date +%s)
   sabayon_molecules_echo "START iso_build.sh script."
   ${SABAYON_MOLECULES_DIR}/scripts/iso_build.sh $@ || return 1
-  sabayon_molecules_echo "END iso_build.sh script."
+  date_end=$(date +%s)
+  sabayon_molecules_echo \
+    "END iso_build.sh script. Build process time: $((${date_end} - ${date_start})) secs."
 
   if [ -e "${SABAYON_MOLECULES_POSTSCRIPT}" ] ; then
     echo "Sourcing POST script file ${SABAYON_MOLECULES_POSTSCRIPT}..."

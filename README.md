@@ -14,6 +14,12 @@ NOTE: It's under development. Not completed.
 
 It is based on Sabayon Dockerfile written by mudler and Sabayon Team.
 
+## Requirements
+
+- Docker
+- LXD
+- Ansible-2.4 (2.5 is not yet supported).
+
 ## Process steps
 
 For now only for amd64 platform.
@@ -116,6 +122,17 @@ For build all:
 
 I begin integration of some Docker stage for ARMv7 (32bit) but is under development.
 
+### Build ISO images
+
+Through iso_build.yml playbook is possible create Sabayon ISO images and do changes through environment variables.
+
+```
+  $# ansible-playbook iso_build.yml
+```
+
+About what ISO you can build and add custom packages to images or custom repository see
+[sabayon-molecules documentation](https://github.com/Sabayon/molecules).
+
 ### Customize Build Process
 
 Current ansible configuration permit build process on localhost but it is possible configure Ansible to build images to a remote machine.
@@ -134,11 +151,18 @@ In particular, under localhost host variable file it is possible customize these
 | lxd_target_server | local | Target LXD Server where upload images |
 | lxd_skip_pull | 1 | Skip pull from docker image on create LXD images (1) or not (0). Normally, is set to 1 when images are created locally. |
 | docker_build_custom_opts | --force-rm --squash --rm | Additional option for docker build phases. By default use --squash that require experimental feature on Docker. |
-| molecules_dir | ../molecules | Path of directory where Sabayon molecules data are available |
 | molecules_git_url | https://github.com/geaaru/molecules.git | Git URL of Sabayon molecule repository |
 | molecules_version | scripts-review | Branch or Tag to use. |
-| molecules_logfile | ${HOME}/molecules.log | Set logfile of Sabayon ISO build phase. |
 | molecules_docker_src_image | sabayon/spinbase-amd64:latest | Define Docker image used as base for build Sabayon ISO |
+| docker_run_custom_opts | - | Define custom option to docker run command. |
+| molecules_opts | - | Define option for iso_build.sh script for ISO building phase. 
+| molecules_iso_volume | /tmp/iso | Define path where docker image store ISO images created |
+| molecules_envfile | - | Permit to define custom Environment file for ISO building for override default options |
+| molecules_docker_src_image | sabayon/spinbase-amd64:latest | If available permit to define source image for ISO building |
+| molecules_kernel_version | - | Define kernel slot to install on Sabayon ISO image |
+| molecules_extra_pkgs | - | Define a list of additional packages to install on ISO images |
+| molecules_enman_repos | - | Define a list of enman repositories to add on creation of ISO images |
+| molecules_unmask_pkgs | - | Define a list of packages to unmask on creation of ISO images |
 
 
 ## Test Suites

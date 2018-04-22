@@ -7,17 +7,81 @@
     - all
   tasks:
 
-    # Create/Update GIT Sabayon Molecules Repos
-    - name: Molecules Sabayon GIT Repository
+    - name: Build ISO image
       tags:
-        - sync_molecules_repo
+        - amd64
       vars:
-        git_url: "{{ molecules_git_url }}"
-        git_dest: "{{ molecules_dir }}"
-        git_version: "{{ molecules_version }}"
-        current_build: "Sync molecules repos"
-      include_role:
-        name: commons
-        tasks_from: prepare_git_repo
+        current_arch: 'amd64'
+        for_amd64: True
+        for_arm: False
+        sabayon_arch: 'amd64'
+        var_m_envfile: ''
+        var_m_kernel_version: ''
+        var_m_docker_src_image: ''
+        var_m_extra_pkgs: ''
+        var_m_enman_repos: ''
+        var_m_unmask_pkgs: ''
+        molecules_git_opts: "-b {{ molecules_version }}"
+      block:
 
+        - name: Check for Molecules Envfile
+          set_fact:
+            var_m_envfile: '-e SABAYON_MOLECULES_ENVFILE="{{ molecules_envfile }}"'
+          when: molecules_envfile is defined
+
+        - name: Check for Docker Custom Source Image
+          set_fact:
+            var_m_docker_src_image: '-e SABAYON_DOCKER_SRC_IMAGE="{{ molecules_docker_src_image }}"'
+          when: molecules_docker_src_image is defined
+
+        - name: Check for Kernel Version
+          set_fact:
+            var_m_kernel_version: '-e SABAYON_KERNEL_VERSION={{ molecules_kernel_version }}'
+          when: molecules_kernel_version is defined
+
+        - name: Check for Extra Packages
+          set_fact:
+            var_m_extra_pkgs: "-e SABAYON_EXTRA_PKGS=\"{{ molecules_extra_pkgs } | join(' ') }}\""
+          when: molecules_extra_pkgs is defined
+
+        - name: Check for Enman Repositories
+          set_fact:
+            var_m_enman_repos: "-e SABAYON_ENMAN_REPOS=\"{{ molecules_enman_repos | join(' ') }}\""
+          when: molecules_enman_repos is defined
+
+        - name: Check for Unmask Packages
+          set_fact:
+            var_m_unmask_pkgs: "-e SABAYON_UNMASK_PKGS=\"{{ molecules_unmask_pkgs | join(' ') }}\""
+          when: molecules_unmask_pkgs is defined
+
+        - name: Run building of Sabayon ISO
+          command: >
+            docker run --rm --name build_iso
+            --tmpfs /run --tmpfs /tmp
+            --cap-add=SYS_PTRACE
+            --cap-add=SYS_ADMIN
+            --cap-add=NET_ADMIN
+            --device=/dev/loop-control:/dev/loop-control
+            --device=/dev/loop0:/dev/loop0
+            --device=/dev/loop1:/dev/loop1
+            -e "COLUMNS=200" -e "LINES=400"
+            -v /sys/fs/cgroup:/sys/fs/cgroup:ro
+            -v {{ molecules_iso_volume }}:/iso
+            {{ docker_run_custom_opts }}
+            {{ var_m_docker_src_image }}
+            {{ var_m_kernel_version }}
+            {{ var_m_extra_pkgs }}
+            {{ var_m_enman_repos }}
+            {{ var_m_unmask_pkgs }}
+            {{ var_m_envfile }}
+            -e "SABAYON_MOLECULES_SYSTEMD_MODE=1"
+            -e "SABAYON_MOLECULES_ISO=/iso"
+            -e "SABAYON_MOLECULES_GITURL={{ molecules_git_url }}"
+            -e SABAYON_MOLECULES_GIT_OPTS="{{ molecules_git_opts }}"
+            {{ docker_user }}/sabayon-molecules-amd64
+            {{ molecules_opts }}
+          register: build_iso_run
+
+        - name: "{{ current_build }}: Run result"
+          debug: var=build_iso_run.stdout_lines
 
