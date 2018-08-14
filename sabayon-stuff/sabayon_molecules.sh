@@ -12,6 +12,8 @@ SABAYON_MOLECULES_ISO=${SABAYON_MOLECULES_ISO:-}
 SABAYON_MOLECULES_ENVFILE=${SABAYON_MOLECULES_ENVFILE:-$(pwd)/confs/iso_build.env}
 SABAYON_MOLECULES_SYSTEMD_MODE=${SABAYON_MOLECULES_SYSTEMD_MODE:-0}
 SABAYON_MOLECULES_POSTSCRIPT=${SABAYON_MOLECULES_POSTSCRIPT:-}
+SABAYON_MOLECULES_JOURNAL_NLOG=${SABAYON_MOLECULES_JOURNAL_NLOG:-100}
+SABAYON_MOLECULES_SYSTEMD_SLEEP=${SABAYON_MOLECULES_SYSTEMD_SLEEP:-5}
 
 sabayon_molecules_info () {
 
@@ -54,6 +56,7 @@ PACKAGES_TO_ADD=(
 
 FILES_TO_REMOVE=(
    "/etc/entropy/packages/license.accept"
+   "/etc/make.profile"
 )
 
 sabayon_molecules_init () {
@@ -136,8 +139,8 @@ sabayon_molecules_run () {
     sabayon_molecules_echo "Starting SYSTEMD"
     exec /sbin/init --system --show-status=true &
 
-    sabayon_molecules_echo "Waiting for systemd starting...sleep 5"
-    sleep 5
+    sabayon_molecules_echo "Waiting for systemd starting...sleep ${SABAYON_MOLECULES_SYSTEMD_SLEEP}"
+    sleep ${SABAYON_MOLECULES_SYSTEMD_SLEEP}
 
     sabayon_molecules_echo "FAILED SYSTEMD SERVICES"
     $systemctl --failed || return 1
@@ -146,7 +149,7 @@ sabayon_molecules_run () {
     $systemctl status || return 1
 
     sabayon_molecules_echo "JOURNALCTL BOOTSTRAP LOG"
-    $journaltcl -b --no-pager
+    $journaltcl -b --no-pager -n ${SABAYON_MOLECULES_JOURNALCTL_NLOG}
   fi
 
   sabayon_molecules_echo \
